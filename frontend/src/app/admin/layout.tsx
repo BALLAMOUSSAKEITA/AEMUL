@@ -11,6 +11,7 @@ import {
   LogOut,
   Menu,
   X,
+  ChevronRight,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -26,6 +27,7 @@ export default function AdminLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [adminName, setAdminName] = useState("");
+  const [adminEmail, setAdminEmail] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [checked, setChecked] = useState(false);
 
@@ -45,6 +47,7 @@ export default function AdminLayout({
       .getMe()
       .then((me) => {
         setAdminName(me.full_name);
+        setAdminEmail(me.email);
         setChecked(true);
       })
       .catch(() => {
@@ -65,78 +68,116 @@ export default function AdminLayout({
   }
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex bg-muted/30">
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-card border-r transform transition-transform lg:translate-x-0 ${
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-[260px] bg-[#14532d] transform transition-transform duration-300 lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex items-center justify-between p-4 border-b">
-          <Link href="/admin/dashboard" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-              <span className="text-sm font-bold text-primary-foreground">A</span>
-            </div>
-            <span className="font-bold">AEMUL Admin</span>
-          </Link>
-          <button
-            className="lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+        <div className="flex flex-col h-full">
+          {/* Sidebar header */}
+          <div className="flex items-center justify-between p-5">
+            <Link
+              href="/admin/dashboard"
+              className="flex items-center gap-3"
+            >
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#c9952b] to-[#e6b94d] flex items-center justify-center">
+                <span className="text-sm font-bold text-white">A</span>
+              </div>
+              <div>
+                <span className="font-bold text-white text-sm">AEMUL</span>
+                <p className="text-[10px] text-white/50">Administration</p>
+              </div>
+            </Link>
+            <button
+              className="lg:hidden text-white/60 hover:text-white"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
 
-        <nav className="p-3 space-y-1">
-          {NAV_ITEMS.map((item) => {
-            const active = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                  active
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                }`}
+          {/* Nav */}
+          <nav className="flex-1 px-3 py-4 space-y-1">
+            {NAV_ITEMS.map((item) => {
+              const active = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setSidebarOpen(false)}
+                  className={`group flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
+                    active
+                      ? "bg-white/15 text-white shadow-sm"
+                      : "text-white/60 hover:bg-white/8 hover:text-white"
+                  }`}
+                >
+                  <item.icon className="w-[18px] h-[18px]" />
+                  <span className="flex-1">{item.label}</span>
+                  {active && (
+                    <ChevronRight className="w-3.5 h-3.5 text-[#c9952b]" />
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
+
+          {/* Sidebar footer */}
+          <div className="p-3 border-t border-white/10">
+            <div className="flex items-center gap-3 px-3 py-2">
+              <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-xs font-bold text-white shrink-0">
+                {adminName
+                  .split(" ")
+                  .map((n) => n[0])
+                  .join("")
+                  .slice(0, 2)}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-white truncate">
+                  {adminName}
+                </p>
+                <p className="text-[10px] text-white/40 truncate">
+                  {adminEmail}
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={logout}
+                className="text-white/40 hover:text-white hover:bg-white/10 h-8 w-8 p-0"
               >
-                <item.icon className="w-4 h-4" />
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-
-        <div className="absolute bottom-0 left-0 right-0 p-3 border-t">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground truncate">
-              {adminName}
-            </span>
-            <Button variant="ghost" size="sm" onClick={logout}>
-              <LogOut className="w-4 h-4" />
-            </Button>
+                <LogOut className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </aside>
 
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="sticky top-0 z-30 bg-background/80 backdrop-blur border-b px-4 py-3 lg:hidden flex items-center gap-3">
+        {/* Mobile header */}
+        <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-md border-b px-4 py-3 lg:hidden flex items-center gap-3">
           <button onClick={() => setSidebarOpen(true)}>
             <Menu className="w-5 h-5" />
           </button>
-          <span className="font-semibold text-sm">AEMUL Admin</span>
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded-md bg-primary flex items-center justify-center">
+              <span className="text-[10px] font-bold text-white">A</span>
+            </div>
+            <span className="font-semibold text-sm">AEMUL Admin</span>
+          </div>
         </header>
-        <main className="flex-1 p-4 lg:p-6">{children}</main>
+
+        <main className="flex-1 p-4 lg:p-8">{children}</main>
       </div>
     </div>
   );
