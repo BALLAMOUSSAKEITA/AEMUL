@@ -332,7 +332,7 @@ function EspaceMembreContent() {
                 <Label className="text-xs">Niveau d&apos;études</Label>
                 <Select
                   value={profileForm.study_level}
-                  onValueChange={(v) => setProfileForm((f) => ({ ...f, study_level: v }))}
+                  onValueChange={(v) => setProfileForm((f) => ({ ...f, study_level: v ?? f.study_level }))}
                 >
                   <SelectTrigger className="h-12 text-base rounded-xl">
                     <SelectValue placeholder="Sélectionnez" />
