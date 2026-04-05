@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, createContext, useContext } from "react";
+import { Suspense, useEffect, useState, createContext, useContext } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api, Member } from "@/lib/api";
 import Link from "next/link";
@@ -27,11 +27,7 @@ const NAV_ITEMS = [
   { key: "prieres", href: "/espace-membre?tab=prieres", icon: Clock, label: "Prières" },
 ];
 
-export default function EspaceMembreLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+function LayoutShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const activeTab = searchParams.get("tab") || "accueil";
@@ -83,7 +79,6 @@ export default function EspaceMembreLayout({
   return (
     <MemberContext.Provider value={member}>
       <div className="min-h-screen bg-muted/30 flex flex-col">
-        {/* Top header */}
         <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-md border-b safe-top">
           <div className="flex items-center justify-between px-4 py-3 max-w-5xl mx-auto">
             <Link href="/espace-membre" className="flex items-center gap-2.5">
@@ -91,7 +86,6 @@ export default function EspaceMembreLayout({
               <span className="font-bold text-sm hidden sm:inline">Mon espace</span>
             </Link>
 
-            {/* Desktop nav */}
             <nav className="hidden md:flex items-center gap-1">
               {NAV_ITEMS.map((item) => (
                 <Link key={item.key} href={item.href}>
@@ -116,7 +110,6 @@ export default function EspaceMembreLayout({
               </button>
             </nav>
 
-            {/* Mobile: logout only (nav is bottom) */}
             <button
               onClick={logout}
               className="md:hidden flex items-center gap-1.5 text-xs text-muted-foreground active:text-foreground"
@@ -126,12 +119,10 @@ export default function EspaceMembreLayout({
           </div>
         </header>
 
-        {/* Main content - padded for bottom bar on mobile */}
         <main className="flex-1 px-4 py-4 pb-24 md:pb-6 max-w-5xl mx-auto w-full">
           {member && children}
         </main>
 
-        {/* Mobile bottom navigation */}
         <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur-md border-t safe-bottom">
           <div className="flex items-stretch">
             {NAV_ITEMS.map((item) => {
@@ -140,7 +131,7 @@ export default function EspaceMembreLayout({
                 <Link
                   key={item.key}
                   href={item.href}
-                  className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 transition-colors active:bg-muted/30 ${
+                  className={`relative flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 transition-colors active:bg-muted/30 ${
                     isActive ? "text-primary" : "text-muted-foreground"
                   }`}
                 >
@@ -160,5 +151,23 @@ export default function EspaceMembreLayout({
         <InstallPrompt />
       </div>
     </MemberContext.Provider>
+  );
+}
+
+export default function EspaceMembreLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="w-6 h-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+        </div>
+      }
+    >
+      <LayoutShell>{children}</LayoutShell>
+    </Suspense>
   );
 }
