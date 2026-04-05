@@ -164,7 +164,6 @@ export default function MembresPage() {
               <TableRow className="bg-muted/30 hover:bg-muted/30">
                 <TableHead className="font-semibold">Membre</TableHead>
                 <TableHead className="font-semibold">No. membre</TableHead>
-                <TableHead className="font-semibold">NI</TableHead>
                 <TableHead className="font-semibold">Programme</TableHead>
                 <TableHead className="font-semibold">Statut</TableHead>
                 <TableHead className="font-semibold">Date</TableHead>
@@ -202,7 +201,6 @@ export default function MembresPage() {
                     <TableCell className="font-mono text-xs text-muted-foreground">
                       {m.member_number}
                     </TableCell>
-                    <TableCell className="text-sm">{m.student_id}</TableCell>
                     <TableCell className="text-sm max-w-[150px] truncate">{m.program}</TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-1">
@@ -342,10 +340,6 @@ export default function MembresPage() {
                 <div className="bg-muted/30 rounded-xl p-3">
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Téléphone</p>
                   <p className="font-medium">{selectedMember.phone}</p>
-                </div>
-                <div className="bg-muted/30 rounded-xl p-3">
-                  <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">NI</p>
-                  <p className="font-medium">{selectedMember.student_id}</p>
                 </div>
                 <div className="bg-muted/30 rounded-xl p-3">
                   <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Statut</p>
