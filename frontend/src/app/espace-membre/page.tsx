@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { api, Member, MemberCardData } from "@/lib/api";
 import { MemberCard } from "@/components/MemberCard";
+import { PrayerTimes } from "@/components/PrayerTimes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,9 +19,10 @@ import {
   Shield,
   Clock,
   Save,
+  Sunrise,
 } from "lucide-react";
 
-export default function EspaceMembrePage() {
+function EspaceMembreContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab") || "accueil";
@@ -28,14 +30,12 @@ export default function EspaceMembrePage() {
   const [member, setMember] = useState<Member | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Password change
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [pwLoading, setPwLoading] = useState(false);
   const [pwError, setPwError] = useState<string | null>(null);
 
-  // Profile edit
   const [profileForm, setProfileForm] = useState({
     first_name: "",
     last_name: "",
@@ -46,7 +46,6 @@ export default function EspaceMembrePage() {
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileMsg, setProfileMsg] = useState<string | null>(null);
 
-  // Card
   const [card, setCard] = useState<MemberCardData | null>(null);
   const [cardLoading, setCardLoading] = useState(false);
   const [cardError, setCardError] = useState<string | null>(null);
@@ -105,7 +104,7 @@ export default function EspaceMembrePage() {
     try {
       const updated = await api.updateProfile(profileForm);
       setMember(updated);
-      setProfileMsg("Profil mis à jour avec succès !");
+      setProfileMsg("Profil mis à jour !");
     } catch (err: unknown) {
       setProfileMsg(err instanceof Error ? err.message : "Erreur.");
     } finally {
@@ -138,15 +137,15 @@ export default function EspaceMembrePage() {
 
   return (
     <>
-      {/* Password change modal (forced on first login) */}
+      {/* Password change modal */}
       {showPasswordModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-card rounded-2xl border shadow-2xl p-8 max-w-sm w-full space-y-5">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
+          <div className="bg-card rounded-t-3xl sm:rounded-2xl border shadow-2xl p-6 sm:p-8 w-full sm:max-w-sm space-y-5 safe-bottom">
             <div className="text-center">
-              <div className="w-14 h-14 rounded-full bg-[var(--gold)]/10 flex items-center justify-center mx-auto mb-3">
-                <Lock className="w-7 h-7 text-[var(--gold)]" />
+              <div className="w-12 h-12 rounded-full bg-[var(--gold)]/10 flex items-center justify-center mx-auto mb-3">
+                <Lock className="w-6 h-6 text-[var(--gold)]" />
               </div>
-              <h2 className="text-xl font-bold font-[var(--font-heading)]">
+              <h2 className="text-lg font-bold font-[var(--font-heading)]">
                 Changez votre mot de passe
               </h2>
               <p className="text-sm text-muted-foreground mt-1">
@@ -167,7 +166,7 @@ export default function EspaceMembrePage() {
                   onChange={(e) => setNewPassword(e.target.value)}
                   required
                   minLength={6}
-                  className="h-11"
+                  className="h-12 text-base rounded-xl"
                 />
               </div>
               <div className="space-y-2">
@@ -177,10 +176,10 @@ export default function EspaceMembrePage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  className="h-11"
+                  className="h-12 text-base rounded-xl"
                 />
               </div>
-              <Button type="submit" className="w-full h-11 gap-2" disabled={pwLoading}>
+              <Button type="submit" className="w-full min-h-[48px] gap-2 rounded-xl text-base" disabled={pwLoading}>
                 {pwLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                 Enregistrer
               </Button>
@@ -189,132 +188,144 @@ export default function EspaceMembrePage() {
         </div>
       )}
 
-      <div className="space-y-6">
-        {/* Welcome header */}
+      <div className="space-y-4">
+        {/* ═══ ACCUEIL ═══ */}
         {tab === "accueil" && (
-          <div className="space-y-6">
-            <div className="bg-card rounded-2xl border p-6 md:p-8">
-              <h1 className="text-2xl font-bold font-[var(--font-heading)] mb-1">
-                Bienvenue, {member.first_name} !
+          <div className="space-y-4">
+            {/* Welcome card */}
+            <div className="bg-gradient-to-br from-primary to-primary/90 rounded-2xl p-5 text-primary-foreground">
+              <h1 className="text-xl font-bold font-[var(--font-heading)]">
+                Salam, {member.first_name} !
               </h1>
-              <p className="text-muted-foreground text-sm">
+              <p className="text-primary-foreground/70 text-sm mt-0.5">
                 Membre #{member.member_number}
               </p>
 
-              <div className="mt-6 grid grid-cols-1 sm:grid-cols-3 gap-3">
-                <div className={`rounded-xl p-4 border ${member.is_approved ? "bg-emerald-500/10 border-emerald-500/20" : "bg-amber-500/10 border-amber-500/20"}`}>
-                  <div className="flex items-center gap-2 mb-1">
+              <div className="mt-4 flex gap-2">
+                <div className={`flex-1 rounded-xl px-3 py-2.5 ${member.is_approved ? "bg-white/15" : "bg-amber-500/30"}`}>
+                  <div className="flex items-center gap-1.5">
                     {member.is_approved ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <CheckCircle2 className="w-3.5 h-3.5" />
                     ) : (
-                      <Clock className="w-4 h-4 text-amber-600" />
+                      <Clock className="w-3.5 h-3.5" />
                     )}
-                    <span className={`text-xs font-semibold ${member.is_approved ? "text-emerald-700" : "text-amber-700"}`}>
+                    <span className="text-[11px] font-semibold">
                       {member.is_approved ? "Approuvé" : "En attente"}
                     </span>
                   </div>
-                  <p className="text-[11px] text-muted-foreground">
-                    {member.is_approved
-                      ? "Votre inscription est validée."
-                      : "Un admin doit valider votre inscription."}
-                  </p>
                 </div>
-
-                <div className="rounded-xl p-4 border bg-primary/5 border-primary/10">
-                  <div className="flex items-center gap-2 mb-1">
-                    <User className="w-4 h-4 text-primary" />
-                    <span className="text-xs font-semibold text-primary">Profil</span>
+                <div className="flex-1 rounded-xl px-3 py-2.5 bg-white/15">
+                  <div className="flex items-center gap-1.5">
+                    <CreditCard className="w-3.5 h-3.5" />
+                    <span className="text-[11px] font-semibold">
+                      {member.is_approved ? "Carte dispo" : "Non dispo"}
+                    </span>
                   </div>
-                  <p className="text-[11px] text-muted-foreground">{member.program}</p>
-                </div>
-
-                <div className="rounded-xl p-4 border bg-[var(--gold)]/5 border-[var(--gold)]/10">
-                  <div className="flex items-center gap-2 mb-1">
-                    <CreditCard className="w-4 h-4 text-[var(--gold)]" />
-                    <span className="text-xs font-semibold text-[var(--gold)]">Carte</span>
-                  </div>
-                  <p className="text-[11px] text-muted-foreground">
-                    {member.is_approved ? "Disponible" : "Indisponible jusqu'à approbation"}
-                  </p>
                 </div>
               </div>
             </div>
 
             {!member.is_approved && (
-              <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-5 flex items-start gap-3">
+              <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex items-start gap-3">
                 <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium text-sm text-amber-800">Inscription en attente</p>
+                  <p className="font-medium text-sm text-amber-800">En attente d&apos;approbation</p>
                   <p className="text-xs text-amber-700/70 mt-0.5">
-                    Votre inscription doit être approuvée par un administrateur avant de pouvoir
-                    générer votre carte de membre.
+                    Un administrateur doit valider votre inscription pour accéder à votre carte.
                   </p>
                 </div>
               </div>
             )}
+
+            {/* Prayer times */}
+            <div className="bg-card rounded-2xl border p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 rounded-lg bg-[var(--gold)]/10 flex items-center justify-center">
+                  <Sunrise className="w-4 h-4 text-[var(--gold)]" />
+                </div>
+                <h2 className="font-bold text-sm">Prières du jour</h2>
+              </div>
+              <PrayerTimes compact />
+            </div>
+
+            {/* Quick actions */}
+            <div className="grid grid-cols-2 gap-3">
+              <a href="/espace-membre?tab=profil" className="bg-card rounded-2xl border p-4 flex flex-col items-center gap-2 active:bg-muted/50 transition-colors">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <User className="w-5 h-5 text-primary" />
+                </div>
+                <span className="text-xs font-medium">Mon profil</span>
+              </a>
+              <a href="/espace-membre?tab=carte" className="bg-card rounded-2xl border p-4 flex flex-col items-center gap-2 active:bg-muted/50 transition-colors">
+                <div className="w-10 h-10 rounded-xl bg-[var(--gold)]/10 flex items-center justify-center">
+                  <CreditCard className="w-5 h-5 text-[var(--gold)]" />
+                </div>
+                <span className="text-xs font-medium">Ma carte</span>
+              </a>
+            </div>
           </div>
         )}
 
-        {/* Profile tab */}
+        {/* ═══ PROFIL ═══ */}
         {tab === "profil" && (
-          <div className="bg-card rounded-2xl border p-6 md:p-8">
-            <h2 className="text-xl font-bold font-[var(--font-heading)] mb-6">Mon profil</h2>
-            <form onSubmit={handleProfileSave} className="space-y-5">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Prénom</Label>
+          <div className="bg-card rounded-2xl border p-5">
+            <h2 className="text-lg font-bold font-[var(--font-heading)] mb-5">Mon profil</h2>
+            <form onSubmit={handleProfileSave} className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Prénom</Label>
                   <Input
                     value={profileForm.first_name}
                     onChange={(e) => setProfileForm((f) => ({ ...f, first_name: e.target.value }))}
-                    className="h-11"
+                    className="h-12 text-base rounded-xl"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label>Nom</Label>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">Nom</Label>
                   <Input
                     value={profileForm.last_name}
                     onChange={(e) => setProfileForm((f) => ({ ...f, last_name: e.target.value }))}
-                    className="h-11"
+                    className="h-12 text-base rounded-xl"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label>Email</Label>
-                <Input value={member.email} disabled className="h-11 opacity-60" />
-                <p className="text-[10px] text-muted-foreground">L&apos;email ne peut pas être modifié.</p>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Email</Label>
+                <Input value={member.email} disabled className="h-12 text-base rounded-xl opacity-60" />
               </div>
 
-              <div className="space-y-2">
-                <Label>Téléphone</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Téléphone</Label>
                 <Input
                   value={profileForm.phone}
                   onChange={(e) => setProfileForm((f) => ({ ...f, phone: e.target.value }))}
-                  className="h-11"
+                  className="h-12 text-base rounded-xl"
+                  type="tel"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label>Programme</Label>
+              <div className="space-y-1.5">
+                <Label className="text-xs">Programme</Label>
                 <Input
                   value={profileForm.program}
                   onChange={(e) => setProfileForm((f) => ({ ...f, program: e.target.value }))}
-                  className="h-11"
+                  className="h-12 text-base rounded-xl"
                 />
               </div>
 
               {profileMsg && (
-                <p className={`text-sm ${profileMsg.includes("succès") ? "text-emerald-600" : "text-destructive"}`}>
+                <p className={`text-sm font-medium ${profileMsg.includes("mis à jour") ? "text-emerald-600" : "text-destructive"}`}>
                   {profileMsg}
                 </p>
               )}
 
-              <div className="flex gap-3">
-                <Button type="submit" className="gap-2" disabled={profileLoading}>
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <Button type="submit" className="min-h-[48px] gap-2 rounded-xl flex-1" disabled={profileLoading}>
                   {profileLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   Enregistrer
                 </Button>
-                <Button type="button" variant="outline" onClick={() => setShowPasswordModal(true)} className="gap-2">
+                <Button type="button" variant="outline" onClick={() => setShowPasswordModal(true)} className="min-h-[48px] gap-2 rounded-xl flex-1">
                   <Lock className="w-4 h-4" />
                   Changer mot de passe
                 </Button>
@@ -323,32 +334,32 @@ export default function EspaceMembrePage() {
           </div>
         )}
 
-        {/* Card tab */}
+        {/* ═══ CARTE ═══ */}
         {tab === "carte" && (
-          <div className="space-y-6">
-            <div className="bg-card rounded-2xl border p-6 md:p-8">
-              <h2 className="text-xl font-bold font-[var(--font-heading)] mb-2">Ma carte de membre</h2>
-              <p className="text-sm text-muted-foreground mb-6">
+          <div className="space-y-4">
+            <div className="bg-card rounded-2xl border p-5">
+              <h2 className="text-lg font-bold font-[var(--font-heading)] mb-1">Ma carte</h2>
+              <p className="text-sm text-muted-foreground mb-5">
                 {member.is_approved
-                  ? "Générez ou régénérez votre carte à tout moment."
-                  : "Votre carte sera disponible une fois votre inscription approuvée."}
+                  ? "Générez ou régénérez votre carte."
+                  : "Disponible après approbation."}
               </p>
 
               {!member.is_approved ? (
-                <div className="py-10 text-center">
-                  <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
-                    <Shield className="w-8 h-8 text-muted-foreground" />
+                <div className="py-8 text-center">
+                  <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
+                    <Shield className="w-7 h-7 text-muted-foreground" />
                   </div>
-                  <p className="font-medium text-muted-foreground">En attente d&apos;approbation</p>
+                  <p className="font-medium text-sm text-muted-foreground">En attente</p>
                   <p className="text-xs text-muted-foreground/60 mt-1">
                     Un administrateur doit valider votre inscription.
                   </p>
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <Button onClick={loadCard} className="gap-2" disabled={cardLoading}>
+                  <Button onClick={loadCard} className="w-full min-h-[48px] gap-2 rounded-xl" disabled={cardLoading}>
                     {cardLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-                    {card ? "Régénérer la carte" : "Générer ma carte"}
+                    {card ? "Régénérer" : "Générer ma carte"}
                   </Button>
 
                   {cardError && (
@@ -358,16 +369,42 @@ export default function EspaceMembrePage() {
                   )}
 
                   {card && (
-                    <div className="max-w-sm">
-                      <MemberCard member={card} watermark={new Date().toLocaleTimeString("fr-CA")} />
-                    </div>
+                    <MemberCard member={card} watermark={new Date().toLocaleTimeString("fr-CA")} />
                   )}
                 </div>
               )}
             </div>
           </div>
         )}
+
+        {/* ═══ PRIERES ═══ */}
+        {tab === "prieres" && (
+          <div className="bg-card rounded-2xl border p-5">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-9 h-9 rounded-xl bg-[var(--gold)]/10 flex items-center justify-center">
+                <Sunrise className="w-5 h-5 text-[var(--gold)]" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold font-[var(--font-heading)]">Heures de prières</h2>
+                <p className="text-xs text-muted-foreground">Salat du jour</p>
+              </div>
+            </div>
+            <PrayerTimes />
+          </div>
+        )}
       </div>
     </>
+  );
+}
+
+export default function EspaceMembrePage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center py-20">
+        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+      </div>
+    }>
+      <EspaceMembreContent />
+    </Suspense>
   );
 }

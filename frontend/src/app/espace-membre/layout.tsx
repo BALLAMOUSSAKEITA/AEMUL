@@ -1,19 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useState, createContext, useContext } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { api, Member } from "@/lib/api";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
+import { InstallPrompt } from "@/components/InstallPrompt";
+import { schedulePrayerNotifications, requestNotificationPermission } from "@/lib/notifications";
 import {
+  Home,
   User,
   CreditCard,
+  Clock,
   LogOut,
-  Menu,
-  X,
-  Home,
 } from "lucide-react";
+
+const MemberContext = createContext<Member | null>(null);
+export function useMember() {
+  return useContext(MemberContext);
+}
+
+const NAV_ITEMS = [
+  { key: "accueil", href: "/espace-membre", icon: Home, label: "Accueil" },
+  { key: "profil", href: "/espace-membre?tab=profil", icon: User, label: "Profil" },
+  { key: "carte", href: "/espace-membre?tab=carte", icon: CreditCard, label: "Carte" },
+  { key: "prieres", href: "/espace-membre?tab=prieres", icon: Clock, label: "Prières" },
+];
 
 export default function EspaceMembreLayout({
   children,
@@ -21,9 +33,10 @@ export default function EspaceMembreLayout({
   children: React.ReactNode;
 }) {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const activeTab = searchParams.get("tab") || "accueil";
   const [member, setMember] = useState<Member | null>(null);
   const [checked, setChecked] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("member_token");
@@ -43,84 +56,109 @@ export default function EspaceMembreLayout({
       });
   }, [router]);
 
+  useEffect(() => {
+    if (!checked) return;
+    requestNotificationPermission();
+    api.getPrayerTimes().then((res) => {
+      const d = new Date();
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      const entry = res.times[key];
+      if (entry) schedulePrayerNotifications(entry);
+    }).catch(() => {});
+  }, [checked]);
+
   function logout() {
     localStorage.removeItem("member_token");
     router.push("/connexion");
   }
 
-  if (!checked) return null;
+  if (!checked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="w-6 h-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-muted/30">
-      {/* Header */}
-      <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-md border-b">
-        <div className="max-w-5xl mx-auto flex items-center justify-between px-4 py-3">
-          <Link href="/espace-membre" className="flex items-center gap-2.5">
-            <Logo size={32} className="rounded-lg" />
-            <span className="font-bold text-sm">Mon espace</span>
-          </Link>
+    <MemberContext.Provider value={member}>
+      <div className="min-h-screen bg-muted/30 flex flex-col">
+        {/* Top header */}
+        <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-md border-b safe-top">
+          <div className="flex items-center justify-between px-4 py-3 max-w-5xl mx-auto">
+            <Link href="/espace-membre" className="flex items-center gap-2.5">
+              <Logo size={30} className="rounded-lg" />
+              <span className="font-bold text-sm hidden sm:inline">Mon espace</span>
+            </Link>
 
-          {/* Desktop nav */}
-          <nav className="hidden sm:flex items-center gap-1">
-            <Link href="/espace-membre">
-              <Button variant="ghost" size="sm" className="gap-2 text-xs">
-                <Home className="w-3.5 h-3.5" />
-                Accueil
-              </Button>
-            </Link>
-            <Link href="/espace-membre?tab=profil">
-              <Button variant="ghost" size="sm" className="gap-2 text-xs">
-                <User className="w-3.5 h-3.5" />
-                Profil
-              </Button>
-            </Link>
-            <Link href="/espace-membre?tab=carte">
-              <Button variant="ghost" size="sm" className="gap-2 text-xs">
-                <CreditCard className="w-3.5 h-3.5" />
-                Ma carte
-              </Button>
-            </Link>
-            <Button variant="ghost" size="sm" onClick={logout} className="gap-2 text-xs text-muted-foreground">
-              <LogOut className="w-3.5 h-3.5" />
-              Déconnexion
-            </Button>
-          </nav>
+            {/* Desktop nav */}
+            <nav className="hidden md:flex items-center gap-1">
+              {NAV_ITEMS.map((item) => (
+                <Link key={item.key} href={item.href}>
+                  <button
+                    className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-colors ${
+                      activeTab === item.key
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                    }`}
+                  >
+                    <item.icon className="w-4 h-4" />
+                    {item.label}
+                  </button>
+                </Link>
+              ))}
+              <button
+                onClick={logout}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors ml-2"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden lg:inline">Déconnexion</span>
+              </button>
+            </nav>
 
-          {/* Mobile menu button */}
-          <button className="sm:hidden" onClick={() => setMenuOpen(!menuOpen)}>
-            {menuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
-        </div>
+            {/* Mobile: logout only (nav is bottom) */}
+            <button
+              onClick={logout}
+              className="md:hidden flex items-center gap-1.5 text-xs text-muted-foreground active:text-foreground"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
+        </header>
 
-        {/* Mobile nav */}
-        {menuOpen && (
-          <nav className="sm:hidden border-t px-4 py-3 space-y-1 bg-background">
-            <Link href="/espace-membre" onClick={() => setMenuOpen(false)}>
-              <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-xs">
-                <Home className="w-3.5 h-3.5" /> Accueil
-              </Button>
-            </Link>
-            <Link href="/espace-membre?tab=profil" onClick={() => setMenuOpen(false)}>
-              <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-xs">
-                <User className="w-3.5 h-3.5" /> Profil
-              </Button>
-            </Link>
-            <Link href="/espace-membre?tab=carte" onClick={() => setMenuOpen(false)}>
-              <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-xs">
-                <CreditCard className="w-3.5 h-3.5" /> Ma carte
-              </Button>
-            </Link>
-            <Button variant="ghost" size="sm" onClick={logout} className="w-full justify-start gap-2 text-xs text-muted-foreground">
-              <LogOut className="w-3.5 h-3.5" /> Déconnexion
-            </Button>
-          </nav>
-        )}
-      </header>
+        {/* Main content - padded for bottom bar on mobile */}
+        <main className="flex-1 px-4 py-4 pb-24 md:pb-6 max-w-5xl mx-auto w-full">
+          {member && children}
+        </main>
 
-      {/* Inject member context */}
-      <main className="max-w-5xl mx-auto px-4 py-6">
-        {member && children}
-      </main>
-    </div>
+        {/* Mobile bottom navigation */}
+        <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur-md border-t safe-bottom">
+          <div className="flex items-stretch">
+            {NAV_ITEMS.map((item) => {
+              const isActive = activeTab === item.key;
+              return (
+                <Link
+                  key={item.key}
+                  href={item.href}
+                  className={`flex-1 flex flex-col items-center justify-center gap-0.5 py-2.5 transition-colors active:bg-muted/30 ${
+                    isActive ? "text-primary" : "text-muted-foreground"
+                  }`}
+                >
+                  <item.icon className={`w-5 h-5 ${isActive ? "text-primary" : ""}`} />
+                  <span className={`text-[10px] font-medium ${isActive ? "text-primary" : ""}`}>
+                    {item.label}
+                  </span>
+                  {isActive && (
+                    <div className="absolute top-0 w-8 h-0.5 bg-primary rounded-full" />
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        </nav>
+
+        <InstallPrompt />
+      </div>
+    </MemberContext.Provider>
   );
 }
