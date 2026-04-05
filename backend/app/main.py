@@ -2,12 +2,26 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import select
+from sqlalchemy import select, text
 
 from .auth import hash_password
 from .database import engine, Base, async_session
 from .models import Admin
 from .routers import admin, members, prayer_times
+
+
+async def _migrate_schema():
+    """Add missing columns to existing tables (poor-man's migration)."""
+    migrations = [
+        ("members", "hashed_password", "VARCHAR(255) NOT NULL DEFAULT ''"),
+        ("members", "must_change_password", "BOOLEAN NOT NULL DEFAULT true"),
+        ("members", "is_approved", "BOOLEAN NOT NULL DEFAULT false"),
+    ]
+    async with engine.begin() as conn:
+        for table, column, col_type in migrations:
+            await conn.execute(text(
+                f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column} {col_type}"
+            ))
 
 
 async def _seed_admin():
@@ -27,6 +41,7 @@ async def _seed_admin():
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    await _migrate_schema()
     await _seed_admin()
     yield
 
