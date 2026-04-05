@@ -16,6 +16,7 @@ async def _migrate_schema():
         ("members", "hashed_password", "VARCHAR(255) NOT NULL DEFAULT ''"),
         ("members", "must_change_password", "BOOLEAN NOT NULL DEFAULT true"),
         ("members", "is_approved", "BOOLEAN NOT NULL DEFAULT false"),
+        ("members", "study_level", "VARCHAR(50) NOT NULL DEFAULT 'baccalaureat'"),
     ]
     async with engine.begin() as conn:
         for table, column, col_type in migrations:

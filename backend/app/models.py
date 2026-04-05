@@ -23,7 +23,7 @@ class Member(Base):
     phone: Mapped[str] = mapped_column(String(20), nullable=False)
     student_id: Mapped[str] = mapped_column(String(20), nullable=False)
     program: Mapped[str] = mapped_column(String(200), nullable=False)
-    study_year: Mapped[int] = mapped_column(Integer, nullable=False)
+    study_level: Mapped[str] = mapped_column(String(50), nullable=False, default="baccalaureat")
     photo_base64: Mapped[str | None] = mapped_column(Text, nullable=True)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
     must_change_password: Mapped[bool] = mapped_column(Boolean, default=True)

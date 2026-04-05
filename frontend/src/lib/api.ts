@@ -50,7 +50,7 @@ export interface Member {
   phone: string;
   student_id: string;
   program: string;
-  study_year: number;
+  study_level: string;
   photo_base64: string | null;
   is_active: boolean;
   is_approved: boolean;
@@ -84,7 +84,7 @@ export interface CreateMemberPayload {
   phone: string;
   student_id: string;
   program: string;
-  study_year: number;
+  study_level: string;
   photo_base64?: string | null;
 }
 
@@ -105,7 +105,7 @@ export interface ProfileUpdatePayload {
   last_name?: string;
   phone?: string;
   program?: string;
-  study_year?: number;
+  study_level?: string;
   photo_base64?: string | null;
 }
 

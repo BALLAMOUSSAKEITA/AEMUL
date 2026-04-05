@@ -13,7 +13,7 @@ class MemberCreate(BaseModel):
     phone: str
     student_id: str
     program: str
-    study_year: int
+    study_level: str = "baccalaureat"
     photo_base64: str | None = None
 
 
@@ -24,7 +24,7 @@ class MemberUpdate(BaseModel):
     phone: str | None = None
     student_id: str | None = None
     program: str | None = None
-    study_year: int | None = None
+    study_level: str | None = None
     photo_base64: str | None = None
     is_active: bool | None = None
 
@@ -34,7 +34,7 @@ class MemberProfileUpdate(BaseModel):
     last_name: str | None = None
     phone: str | None = None
     program: str | None = None
-    study_year: int | None = None
+    study_level: str | None = None
     photo_base64: str | None = None
 
 
@@ -47,7 +47,7 @@ class MemberOut(BaseModel):
     phone: str
     student_id: str
     program: str
-    study_year: int
+    study_level: str
     photo_base64: str | None = None
     is_active: bool
     is_approved: bool

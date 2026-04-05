@@ -35,7 +35,7 @@ const schema = z.object({
   phone: z.string().min(10, "Numero de telephone invalide"),
   student_id: z.string().min(5, "Numero etudiant invalide"),
   program: z.string().min(2, "Programme requis"),
-  study_year: z.number().min(1).max(10),
+  study_level: z.enum(["baccalaureat", "maitrise", "doctorat"], { required_error: "Niveau d'études requis" }),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -64,7 +64,7 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { study_year: 1 },
+    defaultValues: { study_level: "baccalaureat" },
   });
 
   function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
@@ -333,22 +333,23 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Annee d&apos;etudes</Label>
+                  <Label>Niveau d&apos;études</Label>
                   <Select
-                    defaultValue="1"
-                    onValueChange={(v) => setValue("study_year", Number(v))}
+                    defaultValue="baccalaureat"
+                    onValueChange={(v) => setValue("study_level", v as "baccalaureat" | "maitrise" | "doctorat")}
                   >
                     <SelectTrigger className="h-11">
-                      <SelectValue placeholder="Selectionnez" />
+                      <SelectValue placeholder="Sélectionnez" />
                     </SelectTrigger>
                     <SelectContent>
-                      {[1, 2, 3, 4, 5, 6, 7, 8].map((y) => (
-                        <SelectItem key={y} value={String(y)}>
-                          {y === 1 ? "1ere annee" : `${y}e annee`}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="baccalaureat">Baccalauréat</SelectItem>
+                      <SelectItem value="maitrise">Maîtrise</SelectItem>
+                      <SelectItem value="doctorat">Doctorat</SelectItem>
                     </SelectContent>
                   </Select>
+                  {errors.study_level && (
+                    <p className="text-xs text-destructive">{errors.study_level.message}</p>
+                  )}
                 </div>
               </div>
 

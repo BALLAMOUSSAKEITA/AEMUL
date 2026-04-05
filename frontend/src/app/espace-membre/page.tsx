@@ -8,6 +8,7 @@ import { PrayerTimes } from "@/components/PrayerTimes";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   CheckCircle2,
   AlertTriangle,
@@ -44,7 +45,7 @@ function EspaceMembreContent() {
     last_name: "",
     phone: "",
     program: "",
-    study_year: 1,
+    study_level: "baccalaureat",
   });
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileMsg, setProfileMsg] = useState<string | null>(null);
@@ -64,7 +65,7 @@ function EspaceMembreContent() {
         last_name: m.last_name,
         phone: m.phone,
         program: m.program,
-        study_year: m.study_year,
+        study_level: m.study_level,
       });
       if (m.must_change_password) setShowPasswordModal(true);
     } catch {
@@ -325,6 +326,23 @@ function EspaceMembreContent() {
                   onChange={(e) => setProfileForm((f) => ({ ...f, program: e.target.value }))}
                   className="h-12 text-base rounded-xl"
                 />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs">Niveau d&apos;études</Label>
+                <Select
+                  value={profileForm.study_level}
+                  onValueChange={(v) => setProfileForm((f) => ({ ...f, study_level: v }))}
+                >
+                  <SelectTrigger className="h-12 text-base rounded-xl">
+                    <SelectValue placeholder="Sélectionnez" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="baccalaureat">Baccalauréat</SelectItem>
+                    <SelectItem value="maitrise">Maîtrise</SelectItem>
+                    <SelectItem value="doctorat">Doctorat</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {profileMsg && (
