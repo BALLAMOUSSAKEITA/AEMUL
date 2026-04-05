@@ -24,6 +24,8 @@ import {
   ChevronRight,
   ChevronLeft,
   Check,
+  ShieldCheck,
+  ScrollText,
 } from "lucide-react";
 
 const schema = z.object({
@@ -33,7 +35,6 @@ const schema = z.object({
   last_name: z.string().min(2, "Le nom doit contenir au moins 2 caracteres"),
   email: z.string().email("Adresse email invalide"),
   phone: z.string().min(10, "Numero de telephone invalide"),
-  student_id: z.string().min(5, "Numero etudiant invalide"),
   program: z.string().min(2, "Programme requis"),
   study_level: z.enum(["baccalaureat", "maitrise", "doctorat"], { message: "Niveau d'études requis" }),
 });
@@ -41,9 +42,10 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const STEPS = [
-  { id: 1, label: "Identite", icon: User },
+  { id: 1, label: "Identité", icon: User },
   { id: 2, label: "Contact", icon: Mail },
-  { id: 3, label: "Etudes", icon: GraduationCap },
+  { id: 3, label: "Études", icon: GraduationCap },
+  { id: 4, label: "Confirmation", icon: ShieldCheck },
 ];
 
 interface Props {
@@ -54,6 +56,8 @@ interface Props {
 export function RegistrationForm({ onSubmit, loading }: Props) {
   const [step, setStep] = useState(1);
   const [photoBase64, setPhotoBase64] = useState<string | null>(null);
+  const [acceptedPolicy, setAcceptedPolicy] = useState(false);
+  const [policyError, setPolicyError] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -61,6 +65,7 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
     handleSubmit,
     setValue,
     trigger,
+    getValues,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -78,19 +83,32 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
   async function nextStep() {
     const fieldsMap: Record<number, (keyof FormData)[]> = {
       1: ["first_name", "last_name"],
-      2: ["email", "phone", "student_id"],
+      2: ["email", "phone"],
+      3: ["program", "study_level"],
     };
-    const valid = await trigger(fieldsMap[step]);
-    if (valid) setStep((s) => Math.min(s + 1, 3));
+    if (fieldsMap[step]) {
+      const valid = await trigger(fieldsMap[step]);
+      if (!valid) return;
+    }
+    setStep((s) => Math.min(s + 1, 4));
   }
 
   function onFormSubmit(data: FormData) {
+    if (!acceptedPolicy) {
+      setPolicyError(true);
+      return;
+    }
     onSubmit({ ...data, photo_base64: photoBase64 });
   }
 
+  const STUDY_LEVEL_LABELS: Record<string, string> = {
+    baccalaureat: "Baccalauréat",
+    maitrise: "Maîtrise",
+    doctorat: "Doctorat",
+  };
+
   return (
     <div className="space-y-8">
-      {/* Step indicator */}
       <div className="flex items-center justify-center gap-0">
         {STEPS.map((s, i) => (
           <div key={s.id} className="flex items-center">
@@ -111,7 +129,7 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
                 )}
               </div>
               <span
-                className={`text-[11px] mt-1.5 font-medium transition-colors ${
+                className={`text-[10px] mt-1.5 font-medium transition-colors ${
                   step >= s.id ? "text-primary" : "text-muted-foreground"
                 }`}
               >
@@ -120,7 +138,7 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
             </div>
             {i < STEPS.length - 1 && (
               <div
-                className={`w-12 md:w-20 h-0.5 mx-2 mb-5 rounded transition-colors duration-300 ${
+                className={`w-8 md:w-14 h-0.5 mx-1.5 mb-5 rounded transition-colors duration-300 ${
                   step > s.id ? "bg-primary" : "bg-border"
                 }`}
               />
@@ -129,22 +147,19 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
         ))}
       </div>
 
-      {/* Form card */}
       <div className="bg-card rounded-2xl border shadow-sm p-6 md:p-8">
         <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-6">
-          {/* Step 1 - Identity */}
           {step === 1 && (
             <div className="space-y-6 animate-fade-in-up">
               <div className="text-center mb-2">
                 <h2 className="text-xl font-bold font-[var(--font-heading)]">
-                  Qui etes-vous ?
+                  Qui êtes-vous ?
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1">
                   Commencez par vos informations personnelles
                 </p>
               </div>
 
-              {/* Photo */}
               <div className="flex flex-col items-center gap-3">
                 <button
                   type="button"
@@ -181,7 +196,7 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="first_name">Prenom</Label>
+                  <Label htmlFor="first_name">Prénom</Label>
                   <Input
                     id="first_name"
                     {...register("first_name")}
@@ -221,7 +236,6 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
             </div>
           )}
 
-          {/* Step 2 - Contact */}
           {step === 2 && (
             <div className="space-y-6 animate-fade-in-up">
               <div className="text-center mb-2">
@@ -229,7 +243,7 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
                   Comment vous contacter ?
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Vos coordonnees et numero etudiant
+                  Vos coordonnées
                 </p>
               </div>
 
@@ -251,7 +265,7 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Telephone</Label>
+                  <Label htmlFor="phone">Téléphone</Label>
                   <Input
                     id="phone"
                     type="tel"
@@ -262,21 +276,6 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
                   {errors.phone && (
                     <p className="text-xs text-destructive">
                       {errors.phone.message}
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="student_id">Numero etudiant (NI)</Label>
-                  <Input
-                    id="student_id"
-                    {...register("student_id")}
-                    placeholder="111 222 333"
-                    className="h-11"
-                  />
-                  {errors.student_id && (
-                    <p className="text-xs text-destructive">
-                      {errors.student_id.message}
                     </p>
                   )}
                 </div>
@@ -304,25 +303,24 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
             </div>
           )}
 
-          {/* Step 3 - Studies */}
           {step === 3 && (
             <div className="space-y-6 animate-fade-in-up">
               <div className="text-center mb-2">
                 <h2 className="text-xl font-bold font-[var(--font-heading)]">
-                  Vos etudes
+                  Vos études
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Dernieres informations pour finaliser
+                  Informations académiques
                 </p>
               </div>
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="program">Programme d&apos;etudes</Label>
+                  <Label htmlFor="program">Programme d&apos;études</Label>
                   <Input
                     id="program"
                     {...register("program")}
-                    placeholder="Genie informatique"
+                    placeholder="Génie informatique"
                     className="h-11"
                   />
                   {errors.program && (
@@ -364,6 +362,135 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
                   Retour
                 </Button>
                 <Button
+                  type="button"
+                  onClick={nextStep}
+                  className="flex-1 h-11 gap-2"
+                >
+                  Continuer
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {step === 4 && (
+            <div className="space-y-6 animate-fade-in-up">
+              <div className="text-center mb-2">
+                <h2 className="text-xl font-bold font-[var(--font-heading)]">
+                  Confirmation
+                </h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Vérifiez vos informations et acceptez la politique de confidentialité
+                </p>
+              </div>
+
+              <div className="bg-muted/50 rounded-xl p-4 space-y-2.5">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Récapitulatif</h3>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+                  <span className="text-muted-foreground">Nom</span>
+                  <span className="font-medium">{getValues("first_name")} {getValues("last_name")}</span>
+                  <span className="text-muted-foreground">Email</span>
+                  <span className="font-medium truncate">{getValues("email")}</span>
+                  <span className="text-muted-foreground">Téléphone</span>
+                  <span className="font-medium">{getValues("phone")}</span>
+                  <span className="text-muted-foreground">Programme</span>
+                  <span className="font-medium">{getValues("program")}</span>
+                  <span className="text-muted-foreground">Niveau</span>
+                  <span className="font-medium">{STUDY_LEVEL_LABELS[getValues("study_level")] || getValues("study_level")}</span>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <ScrollText className="w-4 h-4 text-muted-foreground" />
+                  <h3 className="text-sm font-bold">Politique de confidentialité</h3>
+                </div>
+                <div className="bg-muted/30 border rounded-xl p-4 max-h-48 overflow-y-auto text-xs text-muted-foreground leading-relaxed space-y-3 scroll-smooth">
+                  <p className="font-semibold text-foreground">Politique de confidentialité — AEMUL</p>
+                  <p>
+                    L&apos;Association des Étudiants Musulmans de l&apos;Université Laval (AEMUL)
+                    s&apos;engage à protéger la vie privée de ses membres conformément à la
+                    Loi sur la protection des renseignements personnels dans le secteur privé du Québec (Loi 25).
+                  </p>
+                  <p className="font-semibold text-foreground">1. Données collectées</p>
+                  <p>
+                    Nous collectons les informations suivantes lors de votre inscription :
+                    nom, prénom, adresse courriel, numéro de téléphone, programme d&apos;études,
+                    niveau d&apos;études et photo de profil (optionnelle). Ces données sont nécessaires
+                    à la gestion de votre adhésion et à la génération de votre carte de membre.
+                  </p>
+                  <p className="font-semibold text-foreground">2. Utilisation des données</p>
+                  <p>
+                    Vos données personnelles sont utilisées exclusivement pour :
+                    la gestion de votre compte membre, la génération de votre carte de membre numérique,
+                    les communications liées aux activités de l&apos;AEMUL et les notifications
+                    relatives aux heures de prières (si vous les activez).
+                  </p>
+                  <p className="font-semibold text-foreground">3. Partage des données</p>
+                  <p>
+                    Vos données personnelles ne sont jamais vendues, louées ou partagées avec des tiers
+                    à des fins commerciales. Seuls les administrateurs autorisés de l&apos;AEMUL ont accès
+                    à vos informations dans le cadre de la gestion de l&apos;association.
+                  </p>
+                  <p className="font-semibold text-foreground">4. Sécurité</p>
+                  <p>
+                    Vos données sont stockées de manière sécurisée. Les mots de passe sont chiffrés
+                    et votre carte de membre est protégée par un mécanisme d&apos;affichage temporaire.
+                    Les communications sont chiffrées via HTTPS.
+                  </p>
+                  <p className="font-semibold text-foreground">5. Conservation</p>
+                  <p>
+                    Vos données sont conservées pendant la durée de votre adhésion.
+                    Vous pouvez demander la suppression de votre compte et de vos données
+                    à tout moment en contactant un administrateur.
+                  </p>
+                  <p className="font-semibold text-foreground">6. Vos droits</p>
+                  <p>
+                    Vous avez le droit d&apos;accéder à vos données personnelles, de les rectifier,
+                    de les supprimer et de retirer votre consentement. Pour exercer ces droits,
+                    contactez-nous à admin@aemul.com.
+                  </p>
+                </div>
+              </div>
+
+              <label className={`flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all ${
+                acceptedPolicy
+                  ? "border-primary bg-primary/5"
+                  : policyError
+                    ? "border-destructive bg-destructive/5"
+                    : "border-border hover:border-primary/40"
+              }`}>
+                <input
+                  type="checkbox"
+                  checked={acceptedPolicy}
+                  onChange={(e) => {
+                    setAcceptedPolicy(e.target.checked);
+                    if (e.target.checked) setPolicyError(false);
+                  }}
+                  className="mt-0.5 w-4 h-4 rounded accent-primary"
+                />
+                <span className="text-sm leading-snug">
+                  J&apos;ai lu et j&apos;accepte la <strong>politique de confidentialité</strong> de l&apos;AEMUL.
+                  Je consens au traitement de mes données personnelles.
+                </span>
+              </label>
+              {policyError && (
+                <p className="text-xs text-destructive">
+                  Vous devez accepter la politique de confidentialité pour continuer.
+                </p>
+              )}
+
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setStep(3)}
+                  className="flex-1 h-11 gap-2"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  Retour
+                </Button>
+                <Button
                   type="submit"
                   disabled={loading}
                   className="flex-1 h-11 gap-2 bg-gradient-to-r from-primary to-primary/90 shadow-lg shadow-primary/20"
@@ -371,7 +498,7 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
                   {loading && (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   )}
-                  {loading ? "Inscription..." : "Finaliser"}
+                  {loading ? "Inscription..." : "Finaliser l'inscription"}
                   {!loading && <Check className="w-4 h-4" />}
                 </Button>
               </div>

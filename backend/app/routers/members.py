@@ -181,7 +181,6 @@ async def list_members(
             | Member.last_name.ilike(pattern)
             | Member.email.ilike(pattern)
             | Member.member_number.ilike(pattern)
-            | Member.student_id.ilike(pattern)
         )
     if is_active is not None:
         query = query.where(Member.is_active == is_active)

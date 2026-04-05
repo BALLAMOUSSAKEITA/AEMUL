@@ -21,7 +21,7 @@ class Member(Base):
     last_name: Mapped[str] = mapped_column(String(100), nullable=False)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     phone: Mapped[str] = mapped_column(String(20), nullable=False)
-    student_id: Mapped[str] = mapped_column(String(20), nullable=False)
+    student_id: Mapped[str | None] = mapped_column(String(20), nullable=True, default="")
     program: Mapped[str] = mapped_column(String(200), nullable=False)
     study_level: Mapped[str] = mapped_column(String(50), nullable=False, default="baccalaureat")
     photo_base64: Mapped[str | None] = mapped_column(Text, nullable=True)

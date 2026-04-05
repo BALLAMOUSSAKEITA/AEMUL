@@ -18,10 +18,17 @@ async def _migrate_schema():
         ("members", "is_approved", "BOOLEAN NOT NULL DEFAULT false"),
         ("members", "study_level", "VARCHAR(50) NOT NULL DEFAULT 'baccalaureat'"),
     ]
+    nullable_migrations = [
+        ("members", "student_id"),
+    ]
     async with engine.begin() as conn:
         for table, column, col_type in migrations:
             await conn.execute(text(
                 f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column} {col_type}"
+            ))
+        for table, column in nullable_migrations:
+            await conn.execute(text(
+                f"ALTER TABLE {table} ALTER COLUMN {column} DROP NOT NULL"
             ))
 
 

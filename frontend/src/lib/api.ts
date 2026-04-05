@@ -48,7 +48,6 @@ export interface Member {
   last_name: string;
   email: string;
   phone: string;
-  student_id: string;
   program: string;
   study_level: string;
   photo_base64: string | null;
@@ -82,7 +81,6 @@ export interface CreateMemberPayload {
   last_name: string;
   email: string;
   phone: string;
-  student_id: string;
   program: string;
   study_level: string;
   photo_base64?: string | null;

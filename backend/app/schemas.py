@@ -11,7 +11,6 @@ class MemberCreate(BaseModel):
     last_name: str
     email: EmailStr
     phone: str
-    student_id: str
     program: str
     study_level: str = "baccalaureat"
     photo_base64: str | None = None
@@ -22,7 +21,6 @@ class MemberUpdate(BaseModel):
     last_name: str | None = None
     email: EmailStr | None = None
     phone: str | None = None
-    student_id: str | None = None
     program: str | None = None
     study_level: str | None = None
     photo_base64: str | None = None
@@ -45,7 +43,6 @@ class MemberOut(BaseModel):
     last_name: str
     email: str
     phone: str
-    student_id: str
     program: str
     study_level: str
     photo_base64: str | None = None
