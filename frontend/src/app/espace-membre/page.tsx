@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, Suspense } from "react";
+import { useEffect, useState, useCallback, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { api, Member, MemberCardData } from "@/lib/api";
 import { MemberCard } from "@/components/MemberCard";
@@ -15,12 +15,29 @@ import {
   User,
   Lock,
   Loader2,
-  RefreshCw,
+  Download,
   Shield,
   Clock,
   Save,
   Sunrise,
 } from "lucide-react";
+
+const CARD_CACHE_KEY = "aemul_card_cache";
+
+function cacheCard(data: MemberCardData) {
+  try {
+    sessionStorage.setItem(CARD_CACHE_KEY, JSON.stringify(data));
+  } catch { /* quota exceeded – ignore */ }
+}
+
+function getCachedCard(): MemberCardData | null {
+  try {
+    const raw = sessionStorage.getItem(CARD_CACHE_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
 
 function EspaceMembreContent() {
   const router = useRouter();
@@ -46,9 +63,10 @@ function EspaceMembreContent() {
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileMsg, setProfileMsg] = useState<string | null>(null);
 
-  const [card, setCard] = useState<MemberCardData | null>(null);
+  const [card, setCard] = useState<MemberCardData | null>(() => getCachedCard());
   const [cardLoading, setCardLoading] = useState(false);
   const [cardError, setCardError] = useState<string | null>(null);
+  const cardLoadedRef = useRef(false);
 
   const loadMember = useCallback(async () => {
     try {
@@ -73,6 +91,13 @@ function EspaceMembreContent() {
   useEffect(() => {
     loadMember();
   }, [loadMember]);
+
+  useEffect(() => {
+    if (tab === "carte" && member?.is_approved && !card && !cardLoadedRef.current) {
+      cardLoadedRef.current = true;
+      loadCard();
+    }
+  }, [tab, member, card]);
 
   async function handlePasswordChange(e: React.FormEvent) {
     e.preventDefault();
@@ -118,6 +143,7 @@ function EspaceMembreContent() {
     try {
       const c = await api.getMyCard();
       setCard(c);
+      cacheCard(c);
     } catch (err: unknown) {
       setCardError(err instanceof Error ? err.message : "Impossible de charger la carte.");
     } finally {
@@ -137,7 +163,6 @@ function EspaceMembreContent() {
 
   return (
     <>
-      {/* Password change modal */}
       {showPasswordModal && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
           <div className="bg-card rounded-t-3xl sm:rounded-2xl border shadow-2xl p-6 sm:p-8 w-full sm:max-w-sm space-y-5 safe-bottom">
@@ -189,10 +214,8 @@ function EspaceMembreContent() {
       )}
 
       <div className="space-y-4">
-        {/* ═══ ACCUEIL ═══ */}
         {tab === "accueil" && (
           <div className="space-y-4">
-            {/* Welcome card */}
             <div className="bg-gradient-to-br from-primary to-primary/90 rounded-2xl p-5 text-primary-foreground">
               <h1 className="text-xl font-bold font-[var(--font-heading)]">
                 Salam, {member.first_name} !
@@ -237,18 +260,8 @@ function EspaceMembreContent() {
               </div>
             )}
 
-            {/* Prayer times */}
-            <div className="bg-card rounded-2xl border p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <div className="w-8 h-8 rounded-lg bg-[var(--gold)]/10 flex items-center justify-center">
-                  <Sunrise className="w-4 h-4 text-[var(--gold)]" />
-                </div>
-                <h2 className="font-bold text-sm">Prières du jour</h2>
-              </div>
-              <PrayerTimes compact />
-            </div>
+            <PrayerTimes compact />
 
-            {/* Quick actions */}
             <div className="grid grid-cols-2 gap-3">
               <a href="/espace-membre?tab=profil" className="bg-card rounded-2xl border p-4 flex flex-col items-center gap-2 active:bg-muted/50 transition-colors">
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
@@ -266,7 +279,6 @@ function EspaceMembreContent() {
           </div>
         )}
 
-        {/* ═══ PROFIL ═══ */}
         {tab === "profil" && (
           <div className="bg-card rounded-2xl border p-5">
             <h2 className="text-lg font-bold font-[var(--font-heading)] mb-5">Mon profil</h2>
@@ -334,14 +346,13 @@ function EspaceMembreContent() {
           </div>
         )}
 
-        {/* ═══ CARTE ═══ */}
         {tab === "carte" && (
           <div className="space-y-4">
             <div className="bg-card rounded-2xl border p-5">
               <h2 className="text-lg font-bold font-[var(--font-heading)] mb-1">Ma carte</h2>
               <p className="text-sm text-muted-foreground mb-5">
                 {member.is_approved
-                  ? "Générez ou régénérez votre carte."
+                  ? "Votre carte de membre AEMUL."
                   : "Disponible après approbation."}
               </p>
 
@@ -357,10 +368,11 @@ function EspaceMembreContent() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <Button onClick={loadCard} className="w-full min-h-[48px] gap-2 rounded-xl" disabled={cardLoading}>
-                    {cardLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
-                    {card ? "Régénérer" : "Générer ma carte"}
-                  </Button>
+                  {cardLoading && !card && (
+                    <div className="flex items-center justify-center py-10">
+                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                    </div>
+                  )}
 
                   {cardError && (
                     <div className="bg-destructive/10 text-destructive border border-destructive/20 rounded-xl p-3 text-sm">
@@ -369,7 +381,31 @@ function EspaceMembreContent() {
                   )}
 
                   {card && (
-                    <MemberCard member={card} watermark={new Date().toLocaleTimeString("fr-CA")} />
+                    <>
+                      <MemberCard member={card} />
+                      <div className="flex gap-3">
+                        <Button onClick={loadCard} variant="outline" className="flex-1 min-h-[44px] gap-2 rounded-xl" disabled={cardLoading}>
+                          {cardLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                          Actualiser
+                        </Button>
+                        <Button variant="outline" className="min-h-[44px] gap-2 rounded-xl" onClick={() => {
+                          const el = document.querySelector("[data-member-card]");
+                          if (el) {
+                            const text = `Carte AEMUL - ${card.first_name} ${card.last_name} - ${card.member_number}`;
+                            navigator.clipboard?.writeText(text);
+                          }
+                        }}>
+                          <Download className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </>
+                  )}
+
+                  {!card && !cardLoading && !cardError && (
+                    <Button onClick={loadCard} className="w-full min-h-[48px] gap-2 rounded-xl">
+                      <CreditCard className="w-4 h-4" />
+                      Charger ma carte
+                    </Button>
                   )}
                 </div>
               )}
@@ -377,20 +413,8 @@ function EspaceMembreContent() {
           </div>
         )}
 
-        {/* ═══ PRIERES ═══ */}
         {tab === "prieres" && (
-          <div className="bg-card rounded-2xl border p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-9 h-9 rounded-xl bg-[var(--gold)]/10 flex items-center justify-center">
-                <Sunrise className="w-5 h-5 text-[var(--gold)]" />
-              </div>
-              <div>
-                <h2 className="text-lg font-bold font-[var(--font-heading)]">Heures de prières</h2>
-                <p className="text-xs text-muted-foreground">Salat du jour</p>
-              </div>
-            </div>
-            <PrayerTimes />
-          </div>
+          <PrayerTimes />
         )}
       </div>
     </>
