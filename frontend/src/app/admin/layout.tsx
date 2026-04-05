@@ -13,6 +13,7 @@ import {
   X,
   ChevronRight,
 } from "lucide-react";
+import { Logo } from "@/components/Logo";
 
 const NAV_ITEMS = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -90,9 +91,7 @@ export default function AdminLayout({
               href="/admin/dashboard"
               className="flex items-center gap-3"
             >
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#c9952b] to-[#e6b94d] flex items-center justify-center">
-                <span className="text-sm font-bold text-white">A</span>
-              </div>
+              <Logo size={36} className="rounded-xl" />
               <div>
                 <span className="font-bold text-white text-sm">AEMUL</span>
                 <p className="text-[10px] text-white/50">Administration</p>
@@ -170,9 +169,7 @@ export default function AdminLayout({
             <Menu className="w-5 h-5" />
           </button>
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-md bg-primary flex items-center justify-center">
-              <span className="text-[10px] font-bold text-white">A</span>
-            </div>
+            <Logo size={24} className="rounded-md" />
             <span className="font-semibold text-sm">AEMUL Admin</span>
           </div>
         </header>

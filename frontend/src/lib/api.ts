@@ -124,4 +124,30 @@ export const api = {
     }),
 
   getMe: () => request<{ id: string; email: string; full_name: string }>("/api/auth/me"),
+
+  getPrayerTimes: () => request<PrayerTimesResponse>("/api/prayer-times"),
 };
+
+// ── Prayer Times ────────────────────────────────────────────────────────────
+
+export interface PrayerTimeEntry {
+  hijri: string;
+  fajr_start: string;
+  fajr_iqama: string;
+  shurooq: string;
+  zuhr_start: string;
+  zuhr_iqama: string;
+  asr_start: string;
+  asr_iqama: string;
+  maghrib_start: string;
+  maghrib_iqama: string;
+  isha_start: string;
+  isha_iqama: string;
+  jumah: string;
+  jumah2: string;
+}
+
+export interface PrayerTimesResponse {
+  times: Record<string, PrayerTimeEntry>;
+  source: string;
+}

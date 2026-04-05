@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Lock } from "lucide-react";
+import { Logo } from "@/components/Logo";
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -38,9 +39,7 @@ export default function AdminLoginPage() {
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#14532d] via-[#1b6b3a] to-[#14532d] relative items-center justify-center p-12">
         <div className="absolute inset-0 geometric-pattern opacity-10" />
         <div className="relative z-10 text-white max-w-md">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#c9952b] to-[#e6b94d] flex items-center justify-center mb-8 shadow-lg">
-            <span className="text-2xl font-bold">A</span>
-          </div>
+          <Logo size={64} className="mb-8 shadow-lg rounded-2xl" />
           <h1 className="text-4xl font-bold font-[var(--font-heading)] mb-4 leading-tight">
             Panneau d&apos;administration
           </h1>
@@ -61,9 +60,7 @@ export default function AdminLoginPage() {
         <div className="w-full max-w-sm">
           {/* Mobile logo */}
           <div className="lg:hidden flex items-center gap-3 mb-10">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
-              <span className="text-lg font-bold text-white">A</span>
-            </div>
+            <Logo size={40} className="rounded-xl" />
             <span className="font-bold text-lg">AEMUL Admin</span>
           </div>
 

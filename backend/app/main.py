@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .database import engine, Base
-from .routers import admin, members
+from .routers import admin, members, prayer_times
 
 
 @asynccontextmanager
@@ -31,6 +31,7 @@ app.add_middleware(
 
 app.include_router(members.router)
 app.include_router(admin.router)
+app.include_router(prayer_times.router)
 
 
 @app.get("/")

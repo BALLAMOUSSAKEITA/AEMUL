@@ -9,3 +9,4 @@ python-multipart==0.0.19
 pillow==11.1.0
 pydantic[email-validation]==2.10.4
 python-dotenv==1.0.1
+httpx==0.28.1

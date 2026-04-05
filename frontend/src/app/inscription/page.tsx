@@ -6,6 +6,7 @@ import { RegistrationForm } from "@/components/RegistrationForm";
 import { api, CreateMemberPayload } from "@/lib/api";
 import { CheckCircle2, CreditCard, ArrowLeft, Copy, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Logo } from "@/components/Logo";
 import Link from "next/link";
 
 export default function InscriptionPage() {
@@ -126,14 +127,12 @@ export default function InscriptionPage() {
         </Link>
 
         <div className="text-center mb-10">
-          <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center mx-auto mb-4 shadow-md shadow-primary/20">
-            <span className="text-xl font-bold text-primary-foreground">A</span>
-          </div>
+          <Logo size={56} className="mx-auto mb-4 shadow-md shadow-primary/20 rounded-xl" />
           <h1 className="text-2xl md:text-3xl font-bold font-[var(--font-heading)] mb-2">
             Devenir membre
           </h1>
           <p className="text-muted-foreground">
-            Rejoignez l&apos;AEMUL en quelques etapes
+            Rejoignez l&apos;AEMUL en quelques étapes
           </p>
         </div>
 

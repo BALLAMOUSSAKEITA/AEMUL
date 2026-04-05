@@ -2,6 +2,7 @@
 
 import { QRCodeSVG } from "qrcode.react";
 import { BarcodeDisplay } from "./BarcodeDisplay";
+import { Logo } from "./Logo";
 import { MemberCardData } from "@/lib/api";
 
 interface Props {
@@ -60,9 +61,7 @@ export function MemberCard({ member, watermark }: Props) {
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-[#c9952b] to-[#e6b94d] flex items-center justify-center shadow-lg">
-                <span className="text-lg font-bold text-white">A</span>
-              </div>
+              <Logo size={44} className="rounded-xl shadow-lg" />
               <div>
                 <h2 className="font-bold text-sm tracking-wide">AEMUL</h2>
                 <p className="text-[9px] text-white/60 leading-tight">
