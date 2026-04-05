@@ -27,9 +27,15 @@ async def _migrate_schema():
                 f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column} {col_type}"
             ))
         for table, column in nullable_migrations:
-            await conn.execute(text(
-                f"ALTER TABLE {table} ALTER COLUMN {column} DROP NOT NULL"
-            ))
+            try:
+                await conn.execute(text(
+                    f"ALTER TABLE {table} ALTER COLUMN {column} SET DEFAULT ''"
+                ))
+                await conn.execute(text(
+                    f"ALTER TABLE {table} ALTER COLUMN {column} DROP NOT NULL"
+                ))
+            except Exception:
+                pass
 
 
 async def _seed_admin():

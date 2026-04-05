@@ -59,6 +59,7 @@ async def create_member(data: MemberCreate, db: AsyncSession = Depends(get_db)):
         hashed_password=hash_password(raw_password),
         must_change_password=True,
         is_approved=False,
+        student_id="",
         **data.model_dump(),
     )
     db.add(member)
