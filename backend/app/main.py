@@ -2,22 +2,39 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy import select
 
-from .database import engine, Base
+from .auth import hash_password
+from .database import engine, Base, async_session
+from .models import Admin
 from .routers import admin, members, prayer_times
+
+
+async def _seed_admin():
+    """Create default admin if none exists."""
+    async with async_session() as session:
+        result = await session.execute(select(Admin).limit(1))
+        if result.scalar_one_or_none() is None:
+            session.add(Admin(
+                email="admin@aemul.com",
+                hashed_password=hash_password("admin"),
+                full_name="Administrateur AEMUL",
+            ))
+            await session.commit()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    await _seed_admin()
     yield
 
 
 app = FastAPI(
     title="AEMUL API",
     description="API pour l'Association des Étudiants Musulmans de l'Université Laval",
-    version="1.0.0",
+    version="2.0.0",
     lifespan=lifespan,
 )
 
@@ -36,4 +53,4 @@ app.include_router(prayer_times.router)
 
 @app.get("/")
 async def root():
-    return {"message": "AEMUL API v1.0.0"}
+    return {"message": "AEMUL API v2.0.0"}

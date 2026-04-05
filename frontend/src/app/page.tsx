@@ -9,6 +9,7 @@ import {
   ArrowRight,
   Star,
   Sunrise,
+  LogIn,
 } from "lucide-react";
 import { PrayerTimes } from "@/components/PrayerTimes";
 import { Logo, LogoText } from "@/components/Logo";
@@ -52,6 +53,16 @@ export default function Home() {
               >
                 S&apos;inscrire comme membre
                 <ArrowRight className="w-4 h-4" />
+              </Button>
+            </Link>
+            <Link href="/connexion">
+              <Button
+                size="lg"
+                variant="outline"
+                className="text-base px-8 py-6 rounded-xl transition-all duration-300 hover:-translate-y-0.5 gap-2 w-full sm:w-auto"
+              >
+                <LogIn className="w-4 h-4" />
+                Espace membre
               </Button>
             </Link>
           </div>
@@ -167,12 +178,20 @@ export default function Home() {
           <p className="text-sm text-muted-foreground">
             &copy; {new Date().getFullYear()} AEMUL - Tous droits réservés
           </p>
-          <Link
-            href="/admin/login"
-            className="text-xs text-muted-foreground/60 hover:text-primary transition-colors"
-          >
-            Administration
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/connexion"
+              className="text-xs text-muted-foreground/60 hover:text-primary transition-colors"
+            >
+              Espace membre
+            </Link>
+            <Link
+              href="/admin/login"
+              className="text-xs text-muted-foreground/60 hover:text-primary transition-colors"
+            >
+              Administration
+            </Link>
+          </div>
         </div>
       </footer>
     </main>

@@ -5,7 +5,9 @@ async function request<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const token =
-    typeof window !== "undefined" ? localStorage.getItem("admin_token") : null;
+    typeof window !== "undefined"
+      ? localStorage.getItem("member_token") || localStorage.getItem("admin_token")
+      : null;
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -27,6 +29,16 @@ async function request<T>(
   return res.json();
 }
 
+function authedRequest<T>(path: string, tokenKey: string, options: RequestInit = {}): Promise<T> {
+  const token = typeof window !== "undefined" ? localStorage.getItem(tokenKey) : null;
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...(options.headers as Record<string, string>),
+  };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
+  return request<T>(path, { ...options, headers });
+}
+
 // ── Members ─────────────────────────────────────────────────────────────────
 
 export interface Member {
@@ -41,6 +53,8 @@ export interface Member {
   study_year: number;
   photo_base64: string | null;
   is_active: boolean;
+  is_approved: boolean;
+  must_change_password: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -60,6 +74,7 @@ export interface MemberStats {
   active_members: number;
   inactive_members: number;
   recent_registrations: number;
+  pending_approvals: number;
 }
 
 export interface CreateMemberPayload {
@@ -73,13 +88,59 @@ export interface CreateMemberPayload {
   photo_base64?: string | null;
 }
 
+export interface MemberRegistrationResult {
+  member: Member;
+  generated_password: string;
+}
+
+export interface MemberLoginResponse {
+  access_token: string;
+  token_type: string;
+  must_change_password: boolean;
+  is_approved: boolean;
+}
+
+export interface ProfileUpdatePayload {
+  first_name?: string;
+  last_name?: string;
+  phone?: string;
+  program?: string;
+  study_year?: number;
+  photo_base64?: string | null;
+}
+
 export const api = {
+  // ── Member public ──
   createMember: (data: CreateMemberPayload) =>
-    request<Member>("/api/members", {
+    request<MemberRegistrationResult>("/api/members", {
       method: "POST",
       body: JSON.stringify(data),
     }),
 
+  memberLogin: (email: string, password: string) =>
+    request<MemberLoginResponse>("/api/members/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    }),
+
+  // ── Member authenticated ──
+  getMyProfile: () => authedRequest<Member>("/api/members/me", "member_token"),
+
+  changePassword: (new_password: string) =>
+    authedRequest<{ message: string }>("/api/members/me/password", "member_token", {
+      method: "PUT",
+      body: JSON.stringify({ new_password }),
+    }),
+
+  updateProfile: (data: ProfileUpdatePayload) =>
+    authedRequest<Member>("/api/members/me/profile", "member_token", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+
+  getMyCard: () => authedRequest<MemberCardData>("/api/members/me/card", "member_token"),
+
+  // ── Admin: members ──
   getMember: (id: string) => request<Member>(`/api/members/${id}`),
 
   getCardData: (id: string) =>
@@ -88,6 +149,7 @@ export const api = {
   listMembers: (params?: {
     search?: string;
     is_active?: boolean;
+    is_approved?: boolean;
     page?: number;
     per_page?: number;
   }) => {
@@ -95,22 +157,30 @@ export const api = {
     if (params?.search) query.set("search", params.search);
     if (params?.is_active !== undefined)
       query.set("is_active", String(params.is_active));
+    if (params?.is_approved !== undefined)
+      query.set("is_approved", String(params.is_approved));
     if (params?.page) query.set("page", String(params.page));
     if (params?.per_page) query.set("per_page", String(params.per_page));
-    return request<Member[]>(`/api/members?${query}`);
+    return authedRequest<Member[]>(`/api/members?${query}`, "admin_token");
   },
 
   updateMember: (id: string, data: Partial<CreateMemberPayload> & { is_active?: boolean }) =>
-    request<Member>(`/api/members/${id}`, {
+    authedRequest<Member>(`/api/members/${id}`, "admin_token", {
       method: "PUT",
       body: JSON.stringify(data),
     }),
 
+  approveMember: (id: string) =>
+    authedRequest<Member>(`/api/members/${id}/approve`, "admin_token", {
+      method: "PUT",
+    }),
+
   deleteMember: (id: string) =>
-    request<void>(`/api/members/${id}`, { method: "DELETE" }),
+    authedRequest<void>(`/api/members/${id}`, "admin_token", { method: "DELETE" }),
 
-  getStats: () => request<MemberStats>("/api/members/stats/overview"),
+  getStats: () => authedRequest<MemberStats>("/api/members/stats/overview", "admin_token"),
 
+  // ── Admin auth ──
   login: (email: string, password: string) =>
     request<{ access_token: string; token_type: string }>("/api/auth/login", {
       method: "POST",
@@ -123,8 +193,9 @@ export const api = {
       body: JSON.stringify({ email, password, full_name }),
     }),
 
-  getMe: () => request<{ id: string; email: string; full_name: string }>("/api/auth/me"),
+  getMe: () => authedRequest<{ id: string; email: string; full_name: string }>("/api/auth/me", "admin_token"),
 
+  // ── Prayer times ──
   getPrayerTimes: () => request<PrayerTimesResponse>("/api/prayer-times"),
 };
 

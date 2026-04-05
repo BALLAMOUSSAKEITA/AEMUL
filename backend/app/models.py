@@ -25,6 +25,9 @@ class Member(Base):
     program: Mapped[str] = mapped_column(String(200), nullable=False)
     study_year: Mapped[int] = mapped_column(Integer, nullable=False)
     photo_base64: Mapped[str | None] = mapped_column(Text, nullable=True)
+    hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    must_change_password: Mapped[bool] = mapped_column(Boolean, default=True)
+    is_approved: Mapped[bool] = mapped_column(Boolean, default=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()

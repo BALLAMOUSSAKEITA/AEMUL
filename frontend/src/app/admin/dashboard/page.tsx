@@ -10,6 +10,7 @@ import {
   CalendarPlus,
   TrendingUp,
   ArrowRight,
+  Clock,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -44,9 +45,9 @@ export default function DashboardPage() {
           iconColor: "text-emerald-600",
         },
         {
-          label: "Membres inactifs",
-          value: stats.inactive_members,
-          icon: UserX,
+          label: "En attente",
+          value: stats.pending_approvals,
+          icon: Clock,
           gradient: "from-amber-500/15 to-amber-500/5",
           iconBg: "bg-amber-500/15",
           iconColor: "text-amber-600",
@@ -100,11 +101,32 @@ export default function DashboardPage() {
         ))}
       </div>
 
+      {/* Pending approvals alert */}
+      {stats && stats.pending_approvals > 0 && (
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center">
+              <Clock className="w-5 h-5 text-amber-600" />
+            </div>
+            <div>
+              <p className="font-medium text-sm">{stats.pending_approvals} inscription(s) en attente</p>
+              <p className="text-xs text-muted-foreground">Ces membres attendent votre approbation.</p>
+            </div>
+          </div>
+          <Link
+            href="/admin/membres"
+            className="text-xs text-amber-700 hover:text-amber-900 font-medium inline-flex items-center gap-1"
+          >
+            Voir <ArrowRight className="w-3 h-3" />
+          </Link>
+        </div>
+      )}
+
       {/* Recent members */}
       <div className="bg-card rounded-2xl border shadow-sm">
         <div className="flex items-center justify-between p-5 pb-0">
           <div>
-            <h2 className="font-bold text-base">Inscriptions recentes</h2>
+            <h2 className="font-bold text-base">Inscriptions récentes</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
               Les 5 derniers membres inscrits
             </p>
@@ -128,7 +150,7 @@ export default function DashboardPage() {
                 Aucun membre inscrit
               </p>
               <p className="text-muted-foreground/60 text-xs mt-1">
-                Les nouveaux membres apparaitront ici
+                Les nouveaux membres apparaîtront ici
               </p>
             </div>
           ) : (
@@ -153,7 +175,12 @@ export default function DashboardPage() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex items-center gap-2 shrink-0">
+                    {!m.is_approved && (
+                      <Badge variant="outline" className="text-[10px] border-amber-500/30 text-amber-600">
+                        En attente
+                      </Badge>
+                    )}
                     <Badge
                       variant={m.is_active ? "default" : "secondary"}
                       className="text-[10px]"

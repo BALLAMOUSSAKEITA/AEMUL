@@ -21,69 +21,46 @@ function getTodayKey(): string {
   return `${y}-${m}-${day}`;
 }
 
-function formatTime(t: string): string {
+function formatTime24(t: string): string {
   if (!t) return "-";
   const [h, m] = t.split(":").map(Number);
-  const suffix = h >= 12 ? "PM" : "AM";
-  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  return `${h12}:${String(m).padStart(2, "0")} ${suffix}`;
+  return `${h}h${String(m).padStart(2, "0")}`;
 }
 
-function getCurrentPrayerIndex(entry: PrayerTimeEntry): number {
+function toMin(t: string): number {
+  if (!t) return -1;
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+}
+
+function getNextPrayerIndex(entry: PrayerTimeEntry): number {
   const now = new Date();
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
 
-  function toMin(t: string): number {
-    if (!t) return -1;
-    const [h, m] = t.split(":").map(Number);
-    return h * 60 + m;
-  }
+  const times = PRAYERS.map((p) =>
+    toMin(entry[p.startKey as keyof PrayerTimeEntry] as string)
+  );
 
-  const times = [
-    toMin(entry.fajr_start),
-    toMin(entry.shurooq),
-    toMin(entry.zuhr_start),
-    toMin(entry.asr_start),
-    toMin(entry.maghrib_start),
-    toMin(entry.isha_start),
-  ];
-
-  let current = -1;
   for (let i = 0; i < times.length; i++) {
-    if (times[i] >= 0 && nowMinutes >= times[i]) {
-      current = i;
+    if (times[i] >= 0 && times[i] > nowMinutes) {
+      return i;
     }
   }
-  return current;
+  return 0;
 }
 
-function getNextPrayer(entry: PrayerTimeEntry, currentIdx: number): { label: string; time: string; minutesLeft: number } | null {
+function getNextPrayerInfo(entry: PrayerTimeEntry, nextIdx: number): { label: string; time: string; minutesLeft: number } | null {
   const now = new Date();
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
+  const p = PRAYERS[nextIdx];
+  const time = entry[p.startKey as keyof PrayerTimeEntry] as string;
+  const prayerMin = toMin(time);
+  if (prayerMin < 0) return null;
 
-  function toMin(t: string): number {
-    if (!t) return -1;
-    const [h, m] = t.split(":").map(Number);
-    return h * 60 + m;
-  }
+  let minutesLeft = prayerMin - nowMinutes;
+  if (minutesLeft < 0) minutesLeft += 24 * 60;
 
-  const allTimes = PRAYERS.map((p) => ({
-    label: p.label,
-    minutes: toMin(entry[p.startKey as keyof PrayerTimeEntry] as string),
-    time: entry[p.startKey as keyof PrayerTimeEntry] as string,
-  }));
-
-  for (const t of allTimes) {
-    if (t.minutes > nowMinutes) {
-      return { label: t.label, time: t.time, minutesLeft: t.minutes - nowMinutes };
-    }
-  }
-
-  if (allTimes[0].minutes >= 0) {
-    return { label: allTimes[0].label, time: allTimes[0].time, minutesLeft: (24 * 60 - nowMinutes) + allTimes[0].minutes };
-  }
-
-  return null;
+  return { label: p.label, time, minutesLeft };
 }
 
 interface PrayerTimesProps {
@@ -93,7 +70,7 @@ interface PrayerTimesProps {
 export function PrayerTimes({ compact = false }: PrayerTimesProps) {
   const [entry, setEntry] = useState<PrayerTimeEntry | null>(null);
   const [loading, setLoading] = useState(true);
-  const [currentIdx, setCurrentIdx] = useState(-1);
+  const [nextIdx, setNextIdx] = useState(0);
 
   useEffect(() => {
     api
@@ -103,7 +80,7 @@ export function PrayerTimes({ compact = false }: PrayerTimesProps) {
         const todayEntry = res.times[todayKey];
         if (todayEntry) {
           setEntry(todayEntry);
-          setCurrentIdx(getCurrentPrayerIndex(todayEntry));
+          setNextIdx(getNextPrayerIndex(todayEntry));
         }
       })
       .catch(console.error)
@@ -113,7 +90,7 @@ export function PrayerTimes({ compact = false }: PrayerTimesProps) {
   useEffect(() => {
     if (!entry) return;
     const interval = setInterval(() => {
-      setCurrentIdx(getCurrentPrayerIndex(entry));
+      setNextIdx(getNextPrayerIndex(entry));
     }, 60000);
     return () => clearInterval(interval);
   }, [entry]);
@@ -134,41 +111,41 @@ export function PrayerTimes({ compact = false }: PrayerTimesProps) {
     );
   }
 
-  const nextPrayer = getNextPrayer(entry, currentIdx);
+  const nextInfo = getNextPrayerInfo(entry, nextIdx);
 
   if (compact) {
     return (
       <div className="space-y-2">
-        {nextPrayer && (
+        {nextInfo && (
           <div className="flex items-center justify-between bg-primary/10 rounded-xl px-4 py-2.5">
             <div className="flex items-center gap-2">
               <Clock className="w-3.5 h-3.5 text-primary" />
               <span className="text-xs font-medium text-primary">
-                Prochaine : {nextPrayer.label}
+                Prochaine : {nextInfo.label}
               </span>
             </div>
             <span className="text-sm font-bold font-mono text-primary">
-              {formatTime(nextPrayer.time)}
+              {formatTime24(nextInfo.time)}
             </span>
           </div>
         )}
         <div className="grid grid-cols-3 gap-1.5">
           {PRAYERS.map((p, i) => {
             const startTime = entry[p.startKey as keyof PrayerTimeEntry] as string;
-            const isCurrent = i === currentIdx;
+            const isNext = i === nextIdx;
             return (
               <div
                 key={p.key}
                 className={`rounded-lg px-2 py-1.5 text-center transition-all ${
-                  isCurrent
+                  isNext
                     ? "bg-primary text-primary-foreground"
                     : "bg-muted/50"
                 }`}
               >
-                <p className={`text-[9px] font-semibold uppercase tracking-wider ${isCurrent ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
+                <p className={`text-[9px] font-semibold uppercase tracking-wider ${isNext ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
                   {p.label}
                 </p>
-                <p className="text-xs font-bold font-mono">{formatTime(startTime)}</p>
+                <p className="text-xs font-bold font-mono">{formatTime24(startTime)}</p>
               </div>
             );
           })}
@@ -188,9 +165,12 @@ export function PrayerTimes({ compact = false }: PrayerTimesProps) {
           </span>
         </div>
         <div className="flex items-center gap-3">
-          {nextPrayer && (
+          {nextInfo && (
             <span className="text-[11px] font-medium text-primary bg-primary/10 rounded-full px-3 py-0.5">
-              Prochaine : {nextPrayer.label} dans {nextPrayer.minutesLeft < 60 ? `${nextPrayer.minutesLeft}min` : `${Math.floor(nextPrayer.minutesLeft / 60)}h${String(nextPrayer.minutesLeft % 60).padStart(2, "0")}`}
+              Prochaine : {nextInfo.label} dans{" "}
+              {nextInfo.minutesLeft < 60
+                ? `${nextInfo.minutesLeft}min`
+                : `${Math.floor(nextInfo.minutesLeft / 60)}h${String(nextInfo.minutesLeft % 60).padStart(2, "0")}`}
             </span>
           )}
           <a
@@ -204,13 +184,6 @@ export function PrayerTimes({ compact = false }: PrayerTimesProps) {
         </div>
       </div>
 
-      {/* Hijri date */}
-      {entry.hijri && (
-        <p className="text-center text-[11px] text-muted-foreground/60">
-          {entry.hijri}
-        </p>
-      )}
-
       {/* Prayer grid */}
       <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
         {PRAYERS.map((p, i) => {
@@ -218,39 +191,39 @@ export function PrayerTimes({ compact = false }: PrayerTimesProps) {
           const iqamaTime = p.iqamaKey
             ? (entry[p.iqamaKey as keyof PrayerTimeEntry] as string)
             : null;
-          const isCurrent = i === currentIdx;
+          const isNext = i === nextIdx;
 
           return (
             <div
               key={p.key}
               className={`relative rounded-xl p-3 text-center transition-all ${
-                isCurrent
+                isNext
                   ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-[1.03]"
                   : "bg-card border hover:bg-muted/30"
               }`}
             >
               <p.icon
                 className={`w-4 h-4 mx-auto mb-1.5 ${
-                  isCurrent ? "text-[#e6b94d]" : "text-muted-foreground"
+                  isNext ? "text-[#e6b94d]" : "text-muted-foreground"
                 }`}
               />
               <p
                 className={`text-[10px] font-semibold uppercase tracking-wider mb-1 ${
-                  isCurrent ? "text-primary-foreground/80" : "text-muted-foreground"
+                  isNext ? "text-primary-foreground/80" : "text-muted-foreground"
                 }`}
               >
                 {p.label}
               </p>
               <p className="text-sm font-bold font-mono">
-                {formatTime(startTime)}
+                {formatTime24(startTime)}
               </p>
               {iqamaTime && (
                 <p
                   className={`text-[10px] mt-0.5 ${
-                    isCurrent ? "text-primary-foreground/60" : "text-muted-foreground/60"
+                    isNext ? "text-primary-foreground/60" : "text-muted-foreground/60"
                   }`}
                 >
-                  Iqama {formatTime(iqamaTime)}
+                  Iqama {formatTime24(iqamaTime)}
                 </p>
               )}
             </div>
@@ -263,12 +236,12 @@ export function PrayerTimes({ compact = false }: PrayerTimesProps) {
         <div className="flex items-center justify-center gap-4 pt-1">
           {entry.jumah && (
             <span className="text-[11px] text-muted-foreground">
-              Jumu&apos;ah : <span className="font-mono font-bold text-foreground">{formatTime(entry.jumah)}</span>
+              Jumu&apos;ah : <span className="font-mono font-bold text-foreground">{formatTime24(entry.jumah)}</span>
             </span>
           )}
           {entry.jumah2 && (
             <span className="text-[11px] text-muted-foreground">
-              Jumu&apos;ah 2 : <span className="font-mono font-bold text-foreground">{formatTime(entry.jumah2)}</span>
+              Jumu&apos;ah 2 : <span className="font-mono font-bold text-foreground">{formatTime24(entry.jumah2)}</span>
             </span>
           )}
         </div>

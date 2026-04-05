@@ -29,6 +29,15 @@ class MemberUpdate(BaseModel):
     is_active: bool | None = None
 
 
+class MemberProfileUpdate(BaseModel):
+    first_name: str | None = None
+    last_name: str | None = None
+    phone: str | None = None
+    program: str | None = None
+    study_year: int | None = None
+    photo_base64: str | None = None
+
+
 class MemberOut(BaseModel):
     id: uuid.UUID
     member_number: str
@@ -41,6 +50,8 @@ class MemberOut(BaseModel):
     study_year: int
     photo_base64: str | None = None
     is_active: bool
+    is_approved: bool
+    must_change_password: bool
     created_at: datetime
     updated_at: datetime
 
@@ -57,6 +68,27 @@ class MemberCardData(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+class MemberRegistrationResult(BaseModel):
+    member: MemberOut
+    generated_password: str
+
+
+class MemberLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class MemberChangePassword(BaseModel):
+    new_password: str
+
+
+class MemberToken(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+    must_change_password: bool = False
+    is_approved: bool = False
 
 
 # ── Auth ─────────────────────────────────────────────────────────────────────
@@ -93,3 +125,4 @@ class MemberStats(BaseModel):
     active_members: int
     inactive_members: int
     recent_registrations: int
+    pending_approvals: int

@@ -4,26 +4,27 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { RegistrationForm } from "@/components/RegistrationForm";
 import { api, CreateMemberPayload } from "@/lib/api";
-import { CheckCircle2, CreditCard, ArrowLeft, Copy, Check } from "lucide-react";
+import { CheckCircle2, LogIn, ArrowLeft, Copy, Check, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import Link from "next/link";
 
 export default function InscriptionPage() {
   const router = useRouter();
-  const [memberId, setMemberId] = useState<string | null>(null);
-  const [memberNumber, setMemberNumber] = useState<string>("");
+  const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
+  const [memberNumber, setMemberNumber] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedPw, setCopiedPw] = useState(false);
 
   async function onSubmit(data: CreateMemberPayload) {
     setError(null);
     setLoading(true);
     try {
-      const member = await api.createMember(data);
-      setMemberId(member.id);
-      setMemberNumber(member.member_number);
+      const result = await api.createMember(data);
+      setGeneratedPassword(result.generated_password);
+      setMemberNumber(result.member.member_number);
     } catch (err: unknown) {
       setError(
         err instanceof Error ? err.message : "Une erreur est survenue."
@@ -33,14 +34,20 @@ export default function InscriptionPage() {
     }
   }
 
-  function copyLink() {
-    const url = `${window.location.origin}/carte/${memberId}`;
-    navigator.clipboard.writeText(url);
+  function copyPassword() {
+    if (!generatedPassword) return;
+    navigator.clipboard.writeText(generatedPassword);
+    setCopiedPw(true);
+    setTimeout(() => setCopiedPw(false), 2000);
+  }
+
+  function copyNumber() {
+    navigator.clipboard.writeText(memberNumber);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
 
-  if (memberId) {
+  if (generatedPassword) {
     return (
       <main className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
         <div className="absolute inset-0 geometric-pattern" />
@@ -57,45 +64,61 @@ export default function InscriptionPage() {
                 Bienvenue dans l&apos;AEMUL !
               </h1>
               <p className="text-muted-foreground">
-                Votre inscription a ete enregistree avec succes.
+                Votre inscription a été enregistrée avec succès.
               </p>
             </div>
 
             <div className="bg-gradient-to-r from-primary/5 to-[var(--gold)]/5 rounded-xl p-4 border border-primary/10">
               <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">
-                Votre numero de membre
+                Votre numéro de membre
               </p>
               <p className="text-2xl font-mono font-bold text-primary">
                 {memberNumber}
+              </p>
+              <button
+                onClick={copyNumber}
+                className="mt-1 inline-flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 font-medium transition-colors"
+              >
+                {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                {copied ? "Copié !" : "Copier"}
+              </button>
+            </div>
+
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 text-left">
+              <div className="flex items-center gap-2 mb-2">
+                <KeyRound className="w-4 h-4 text-amber-600" />
+                <p className="text-sm font-semibold text-amber-800">Votre mot de passe temporaire</p>
+              </div>
+              <p className="font-mono text-lg font-bold text-amber-900 bg-amber-500/10 rounded-lg px-3 py-2 text-center">
+                {generatedPassword}
+              </p>
+              <button
+                onClick={copyPassword}
+                className="mt-2 inline-flex items-center gap-1.5 text-xs text-amber-700 hover:text-amber-900 font-medium transition-colors"
+              >
+                {copiedPw ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                {copiedPw ? "Copié !" : "Copier le mot de passe"}
+              </button>
+              <p className="text-[11px] text-amber-700/70 mt-2">
+                Notez-le bien ! Vous devrez le changer lors de votre première connexion.
               </p>
             </div>
 
             <div className="bg-muted/50 rounded-xl p-4 text-left">
               <p className="text-sm text-muted-foreground">
-                Conservez le lien vers votre carte de membre. Vous pourrez la
-                consulter a tout moment.
+                Un administrateur doit approuver votre inscription avant que vous puissiez
+                générer votre carte de membre.
               </p>
-              <button
-                onClick={copyLink}
-                className="mt-2 inline-flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 font-medium transition-colors"
-              >
-                {copied ? (
-                  <Check className="w-3.5 h-3.5" />
-                ) : (
-                  <Copy className="w-3.5 h-3.5" />
-                )}
-                {copied ? "Lien copie !" : "Copier le lien de la carte"}
-              </button>
             </div>
 
             <div className="space-y-3 pt-2">
-              <Link href={`/carte/${memberId}`}>
+              <Link href="/connexion">
                 <Button
                   size="lg"
                   className="w-full gap-2 h-12 shadow-lg shadow-primary/20"
                 >
-                  <CreditCard className="w-4 h-4" />
-                  Voir ma carte de membre
+                  <LogIn className="w-4 h-4" />
+                  Se connecter
                 </Button>
               </Link>
               <Button
@@ -103,7 +126,7 @@ export default function InscriptionPage() {
                 className="w-full text-muted-foreground"
                 onClick={() => router.push("/")}
               >
-                Retour a l&apos;accueil
+                Retour à l&apos;accueil
               </Button>
             </div>
           </div>
