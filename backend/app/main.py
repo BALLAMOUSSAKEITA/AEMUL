@@ -20,6 +20,7 @@ async def _migrate_schema():
     ]
     nullable_migrations = [
         ("members", "student_id"),
+        ("members", "study_year"),
     ]
     async with engine.begin() as conn:
         for table, column, col_type in migrations:
