@@ -15,29 +15,15 @@ import {
   User,
   Lock,
   Loader2,
-  Download,
   Shield,
   Clock,
   Save,
   Sunrise,
+  Eye,
+  ShieldCheck,
 } from "lucide-react";
 
-const CARD_CACHE_KEY = "aemul_card_cache";
-
-function cacheCard(data: MemberCardData) {
-  try {
-    sessionStorage.setItem(CARD_CACHE_KEY, JSON.stringify(data));
-  } catch { /* quota exceeded – ignore */ }
-}
-
-function getCachedCard(): MemberCardData | null {
-  try {
-    const raw = sessionStorage.getItem(CARD_CACHE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
-}
+const CARD_DISPLAY_DURATION = 30;
 
 function EspaceMembreContent() {
   const router = useRouter();
@@ -63,10 +49,11 @@ function EspaceMembreContent() {
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileMsg, setProfileMsg] = useState<string | null>(null);
 
-  const [card, setCard] = useState<MemberCardData | null>(() => getCachedCard());
+  const [card, setCard] = useState<MemberCardData | null>(null);
   const [cardLoading, setCardLoading] = useState(false);
   const [cardError, setCardError] = useState<string | null>(null);
-  const cardLoadedRef = useRef(false);
+  const [cardCountdown, setCardCountdown] = useState(0);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const loadMember = useCallback(async () => {
     try {
@@ -92,12 +79,26 @@ function EspaceMembreContent() {
     loadMember();
   }, [loadMember]);
 
+  function startCardCountdown() {
+    if (countdownRef.current) clearInterval(countdownRef.current);
+    setCardCountdown(CARD_DISPLAY_DURATION);
+    countdownRef.current = setInterval(() => {
+      setCardCountdown((prev) => {
+        if (prev <= 1) {
+          if (countdownRef.current) clearInterval(countdownRef.current);
+          setCard(null);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  }
+
   useEffect(() => {
-    if (tab === "carte" && member?.is_approved && !card && !cardLoadedRef.current) {
-      cardLoadedRef.current = true;
-      loadCard();
-    }
-  }, [tab, member, card]);
+    return () => {
+      if (countdownRef.current) clearInterval(countdownRef.current);
+    };
+  }, []);
 
   async function handlePasswordChange(e: React.FormEvent) {
     e.preventDefault();
@@ -143,7 +144,7 @@ function EspaceMembreContent() {
     try {
       const c = await api.getMyCard();
       setCard(c);
-      cacheCard(c);
+      startCardCountdown();
     } catch (err: unknown) {
       setCardError(err instanceof Error ? err.message : "Impossible de charger la carte.");
     } finally {
@@ -380,32 +381,63 @@ function EspaceMembreContent() {
                     </div>
                   )}
 
-                  {card && (
+                  {card && cardCountdown > 0 && (
                     <>
-                      <MemberCard member={card} />
-                      <div className="flex gap-3">
-                        <Button onClick={loadCard} variant="outline" className="flex-1 min-h-[44px] gap-2 rounded-xl" disabled={cardLoading}>
-                          {cardLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                          Actualiser
-                        </Button>
-                        <Button variant="outline" className="min-h-[44px] gap-2 rounded-xl" onClick={() => {
-                          const el = document.querySelector("[data-member-card]");
-                          if (el) {
-                            const text = `Carte AEMUL - ${card.first_name} ${card.last_name} - ${card.member_number}`;
-                            navigator.clipboard?.writeText(text);
-                          }
-                        }}>
-                          <Download className="w-4 h-4" />
-                        </Button>
+                      <div className="flex items-center justify-between bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-2.5">
+                        <div className="flex items-center gap-2">
+                          <ShieldCheck className="w-4 h-4 text-amber-600" />
+                          <span className="text-xs font-medium text-amber-700">
+                            Masquage auto pour votre sécurité
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <div
+                            className="w-8 h-8 rounded-full border-2 border-amber-500 flex items-center justify-center relative"
+                          >
+                            <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 36 36">
+                              <circle
+                                cx="18" cy="18" r="16"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                className="text-amber-500/20"
+                              />
+                              <circle
+                                cx="18" cy="18" r="16"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeDasharray={`${(cardCountdown / CARD_DISPLAY_DURATION) * 100.53} 100.53`}
+                                strokeLinecap="round"
+                                className="text-amber-500 transition-all duration-1000 ease-linear"
+                              />
+                            </svg>
+                            <span className="text-[10px] font-bold font-mono text-amber-600 tabular-nums">
+                              {cardCountdown}
+                            </span>
+                          </div>
+                        </div>
                       </div>
+                      <MemberCard member={card} />
                     </>
                   )}
 
-                  {!card && !cardLoading && !cardError && (
-                    <Button onClick={loadCard} className="w-full min-h-[48px] gap-2 rounded-xl">
-                      <CreditCard className="w-4 h-4" />
-                      Charger ma carte
-                    </Button>
+                  {!card && !cardLoading && (
+                    <div className="space-y-4">
+                      <div className="py-6 text-center">
+                        <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                          <Eye className="w-8 h-8 text-primary" />
+                        </div>
+                        <p className="font-medium text-sm">Afficher ma carte</p>
+                        <p className="text-xs text-muted-foreground mt-1 max-w-[240px] mx-auto">
+                          Par mesure de sécurité, votre carte sera visible pendant {CARD_DISPLAY_DURATION} secondes.
+                        </p>
+                      </div>
+                      <Button onClick={loadCard} className="w-full min-h-[48px] gap-2 rounded-xl text-base">
+                        <CreditCard className="w-4 h-4" />
+                        Afficher ma carte
+                      </Button>
+                    </div>
                   )}
                 </div>
               )}
