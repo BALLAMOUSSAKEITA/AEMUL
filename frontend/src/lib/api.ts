@@ -193,9 +193,49 @@ export const api = {
 
   getMe: () => authedRequest<{ id: string; email: string; full_name: string }>("/api/auth/me", "admin_token"),
 
+  // ── Events ──
+  listEvents: (upcomingOnly = false) =>
+    request<Event[]>(`/api/events?upcoming_only=${upcomingOnly}`),
+
+  createEvent: (data: CreateEventPayload) =>
+    authedRequest<Event>("/api/events", "admin_token", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  updateEvent: (id: string, data: Partial<CreateEventPayload>) =>
+    authedRequest<Event>(`/api/events/${id}`, "admin_token", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+
+  deleteEvent: (id: string) =>
+    authedRequest<void>(`/api/events/${id}`, "admin_token", { method: "DELETE" }),
+
   // ── Prayer times ──
   getPrayerTimes: () => request<PrayerTimesResponse>("/api/prayer-times"),
 };
+
+// ── Events ──────────────────────────────────────────────────────────────────
+
+export interface Event {
+  id: string;
+  title: string;
+  description: string | null;
+  date: string;
+  location: string | null;
+  is_published: boolean;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface CreateEventPayload {
+  title: string;
+  description?: string | null;
+  date: string;
+  location?: string | null;
+  is_published?: boolean;
+}
 
 // ── Prayer Times ────────────────────────────────────────────────────────────
 

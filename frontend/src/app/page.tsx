@@ -13,10 +13,17 @@ import {
 } from "lucide-react";
 import { PrayerTimes } from "@/components/PrayerTimes";
 import { Logo, LogoText } from "@/components/Logo";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 export default function Home() {
   return (
     <main className="flex flex-col min-h-screen">
+      <div className="absolute top-4 right-4 z-20 flex items-center gap-1">
+        <LanguageSwitcher />
+        <ThemeToggle />
+      </div>
+
       {/* Hero */}
       <section className="relative flex-1 flex flex-col items-center justify-center px-4 py-20 md:py-28 text-center overflow-hidden">
         <div className="absolute inset-0 geometric-pattern" />
@@ -179,6 +186,18 @@ export default function Home() {
             &copy; {new Date().getFullYear()} AEMUL - Tous droits réservés
           </p>
           <div className="flex items-center gap-4">
+            <Link
+              href="/a-propos"
+              className="text-xs text-muted-foreground/60 hover:text-primary transition-colors"
+            >
+              À propos
+            </Link>
+            <Link
+              href="/faq"
+              className="text-xs text-muted-foreground/60 hover:text-primary transition-colors"
+            >
+              FAQ
+            </Link>
             <Link
               href="/connexion"
               className="text-xs text-muted-foreground/60 hover:text-primary transition-colors"

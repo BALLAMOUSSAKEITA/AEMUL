@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { api, Member, MemberCardData } from "@/lib/api";
+import { api, Member, MemberCardData, Event as AemulEvent } from "@/lib/api";
 import { MemberCard } from "@/components/MemberCard";
 import { PrayerTimes } from "@/components/PrayerTimes";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,8 @@ import {
   Sunrise,
   Eye,
   ShieldCheck,
+  CalendarDays,
+  MapPin,
 } from "lucide-react";
 
 const CARD_DISPLAY_DURATION = 30;
@@ -49,6 +51,9 @@ function EspaceMembreContent() {
   });
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileMsg, setProfileMsg] = useState<string | null>(null);
+
+  const [events, setEvents] = useState<AemulEvent[]>([]);
+  const [eventsLoading, setEventsLoading] = useState(false);
 
   const [card, setCard] = useState<MemberCardData | null>(null);
   const [cardLoading, setCardLoading] = useState(false);
@@ -78,6 +83,8 @@ function EspaceMembreContent() {
 
   useEffect(() => {
     loadMember();
+    setEventsLoading(true);
+    api.listEvents(true).then(setEvents).catch(() => {}).finally(() => setEventsLoading(false));
   }, [loadMember]);
 
   function startCardCountdown() {
@@ -460,6 +467,65 @@ function EspaceMembreContent() {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {tab === "events" && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-bold font-[var(--font-heading)]">Événements à venir</h2>
+            {eventsLoading ? (
+              <div className="flex items-center justify-center py-10">
+                <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              </div>
+            ) : events.length === 0 ? (
+              <div className="bg-card rounded-2xl border p-10 text-center">
+                <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
+                  <CalendarDays className="w-7 h-7 text-muted-foreground" />
+                </div>
+                <p className="font-medium text-sm text-muted-foreground">Aucun événement prévu</p>
+                <p className="text-xs text-muted-foreground/60 mt-1">
+                  Revenez bientôt pour découvrir nos prochaines activités.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {events.map((evt) => {
+                  const d = new Date(evt.date);
+                  return (
+                    <div key={evt.id} className="bg-card rounded-2xl border overflow-hidden">
+                      <div className="flex gap-4 p-4">
+                        <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex flex-col items-center justify-center shrink-0 text-primary-foreground">
+                          <span className="text-[10px] font-bold uppercase">
+                            {d.toLocaleDateString("fr-CA", { month: "short" })}
+                          </span>
+                          <span className="text-lg font-bold leading-none">
+                            {d.getDate()}
+                          </span>
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-bold text-sm">{evt.title}</h3>
+                          {evt.description && (
+                            <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{evt.description}</p>
+                          )}
+                          <div className="flex items-center gap-3 mt-2 text-[11px] text-muted-foreground">
+                            <span className="flex items-center gap-1">
+                              <Clock className="w-3 h-3" />
+                              {d.toLocaleTimeString("fr-CA", { hour: "2-digit", minute: "2-digit" })}
+                            </span>
+                            {evt.location && (
+                              <span className="flex items-center gap-1">
+                                <MapPin className="w-3 h-3" />
+                                {evt.location}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 

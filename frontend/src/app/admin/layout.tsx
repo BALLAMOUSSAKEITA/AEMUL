@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import {
   LayoutDashboard,
   Users,
+  CalendarDays,
   LogOut,
   Menu,
   X,
@@ -18,6 +19,7 @@ import { Logo } from "@/components/Logo";
 const NAV_ITEMS = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/membres", label: "Membres", icon: Users },
+  { href: "/admin/evenements", label: "Événements", icon: CalendarDays },
 ];
 
 export default function AdminLayout({

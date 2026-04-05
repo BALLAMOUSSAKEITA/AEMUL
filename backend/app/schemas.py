@@ -88,6 +88,37 @@ class MemberToken(BaseModel):
     is_approved: bool = False
 
 
+# ── Events ────────────────────────────────────────────────────────────────────
+
+class EventCreate(BaseModel):
+    title: str
+    description: str | None = None
+    date: datetime
+    location: str | None = None
+    is_published: bool = True
+
+
+class EventUpdate(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    date: datetime | None = None
+    location: str | None = None
+    is_published: bool | None = None
+
+
+class EventOut(BaseModel):
+    id: uuid.UUID
+    title: str
+    description: str | None = None
+    date: datetime
+    location: str | None = None
+    is_published: bool
+    created_by: str | None = None
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
 # ── Auth ─────────────────────────────────────────────────────────────────────
 
 class AdminCreate(BaseModel):

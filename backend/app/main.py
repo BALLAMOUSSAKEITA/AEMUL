@@ -7,7 +7,7 @@ from sqlalchemy import select, text
 from .auth import hash_password
 from .database import engine, Base, async_session
 from .models import Admin
-from .routers import admin, members, prayer_times
+from .routers import admin, events, members, prayer_times
 
 
 async def _migrate_schema():
@@ -72,6 +72,7 @@ app.add_middleware(
 app.include_router(members.router)
 app.include_router(admin.router)
 app.include_router(prayer_times.router)
+app.include_router(events.router)
 
 
 @app.get("/")

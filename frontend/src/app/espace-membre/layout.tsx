@@ -7,11 +7,14 @@ import Link from "next/link";
 import { Logo } from "@/components/Logo";
 import { InstallPrompt } from "@/components/InstallPrompt";
 import { schedulePrayerNotifications, requestNotificationPermission } from "@/lib/notifications";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import {
   Home,
   User,
   CreditCard,
   Clock,
+  CalendarDays,
   LogOut,
 } from "lucide-react";
 
@@ -22,9 +25,10 @@ export function useMember() {
 
 const NAV_ITEMS = [
   { key: "accueil", href: "/espace-membre", icon: Home, label: "Accueil" },
-  { key: "profil", href: "/espace-membre?tab=profil", icon: User, label: "Profil" },
+  { key: "events", href: "/espace-membre?tab=events", icon: CalendarDays, label: "Activités" },
   { key: "carte", href: "/espace-membre?tab=carte", icon: CreditCard, label: "Carte" },
   { key: "prieres", href: "/espace-membre?tab=prieres", icon: Clock, label: "Prières" },
+  { key: "profil", href: "/espace-membre?tab=profil", icon: User, label: "Profil" },
 ];
 
 function LayoutShell({ children }: { children: React.ReactNode }) {
@@ -110,12 +114,16 @@ function LayoutShell({ children }: { children: React.ReactNode }) {
               </button>
             </nav>
 
-            <button
-              onClick={logout}
-              className="md:hidden flex items-center gap-1.5 text-xs text-muted-foreground active:text-foreground"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
+            <div className="flex items-center gap-1">
+              <LanguageSwitcher />
+              <ThemeToggle />
+              <button
+                onClick={logout}
+                className="md:hidden flex items-center gap-1.5 text-xs text-muted-foreground active:text-foreground ml-1"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </header>
 
