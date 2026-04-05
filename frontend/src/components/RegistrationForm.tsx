@@ -35,7 +35,7 @@ const schema = z.object({
   phone: z.string().min(10, "Numero de telephone invalide"),
   student_id: z.string().min(5, "Numero etudiant invalide"),
   program: z.string().min(2, "Programme requis"),
-  study_level: z.enum(["baccalaureat", "maitrise", "doctorat"], { required_error: "Niveau d'études requis" }),
+  study_level: z.enum(["baccalaureat", "maitrise", "doctorat"], { message: "Niveau d'études requis" }),
 });
 
 type FormData = z.infer<typeof schema>;
