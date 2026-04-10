@@ -36,6 +36,7 @@ type FormData = {
   phone: string;
   program: string;
   study_level: "baccalaureat" | "maitrise" | "doctorat";
+  gender: "frere" | "soeur";
 };
 
 interface Props {
@@ -58,6 +59,7 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
     phone: z.string().min(10, t("form.phone_invalid")),
     program: z.string().min(2, t("form.program_required")),
     study_level: z.enum(["baccalaureat", "maitrise", "doctorat"], { message: t("form.study_level_required") }),
+    gender: z.enum(["frere", "soeur"]),
   }), [t]);
 
   const STEPS = [
@@ -76,7 +78,7 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { study_level: "baccalaureat" },
+    defaultValues: { study_level: "baccalaureat", gender: "frere" },
   });
 
   function handlePhoto(e: React.ChangeEvent<HTMLInputElement>) {
@@ -89,7 +91,7 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
 
   async function nextStep() {
     const fieldsMap: Record<number, (keyof FormData)[]> = {
-      1: ["first_name", "last_name"],
+      1: ["first_name", "last_name", "gender"],
       2: ["email", "phone"],
       3: ["program", "study_level"],
     };
@@ -199,6 +201,26 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
                   className="hidden"
                   onChange={handlePhoto}
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label>{t("gender.label")}</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  {(["frere", "soeur"] as const).map((g) => (
+                    <button
+                      key={g}
+                      type="button"
+                      onClick={() => setValue("gender", g)}
+                      className={`h-11 rounded-xl border-2 text-sm font-medium transition-all ${
+                        getValues("gender") === g
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border hover:border-primary/40"
+                      }`}
+                    >
+                      {t(`gender.${g}`)}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
@@ -404,6 +426,8 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
                   <span className="font-medium">{getValues("program")}</span>
                   <span className="text-muted-foreground">{t("form.level_label")}</span>
                   <span className="font-medium">{STUDY_LEVEL_LABELS[getValues("study_level")] || getValues("study_level")}</span>
+                  <span className="text-muted-foreground">{t("gender.label")}</span>
+                  <span className="font-medium">{t(`gender.${getValues("gender")}`)}</span>
                 </div>
               </div>
 

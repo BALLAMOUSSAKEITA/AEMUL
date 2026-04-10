@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Users,
   CreditCard,
@@ -10,15 +12,34 @@ import {
   Star,
   Sunrise,
   LogIn,
+  Lightbulb,
+  Send,
+  Loader2,
 } from "lucide-react";
 import { PrayerTimes } from "@/components/PrayerTimes";
 import { Logo, LogoText } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useI18n } from "@/lib/i18n";
+import { api } from "@/lib/api";
 
 export default function Home() {
   const { t } = useI18n();
+  const [ideaText, setIdeaText] = useState("");
+  const [ideaLoading, setIdeaLoading] = useState(false);
+  const [ideaSent, setIdeaSent] = useState(false);
+
+  async function submitIdea() {
+    if (!ideaText.trim()) return;
+    setIdeaLoading(true);
+    try {
+      await api.submitIdea(ideaText.trim());
+      setIdeaText("");
+      setIdeaSent(true);
+      setTimeout(() => setIdeaSent(false), 4000);
+    } catch { /* ignore */ }
+    setIdeaLoading(false);
+  }
 
   return (
     <main className="flex flex-col min-h-screen">
@@ -150,6 +171,39 @@ export default function Home() {
                 </p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Idea Box */}
+      <section className="py-12 px-4 bg-gradient-to-b from-secondary/30 to-background">
+        <div className="max-w-xl mx-auto">
+          <div className="bg-card rounded-2xl border p-6 md:p-8">
+            <div className="flex items-center gap-2.5 mb-2">
+              <div className="w-10 h-10 rounded-xl bg-[var(--gold)]/10 flex items-center justify-center">
+                <Lightbulb className="w-5 h-5 text-[var(--gold)]" />
+              </div>
+              <div>
+                <h3 className="font-bold text-base">{t("idea.title")}</h3>
+                <p className="text-xs text-muted-foreground">{t("idea.subtitle")}</p>
+              </div>
+            </div>
+            {ideaSent ? (
+              <p className="text-sm text-emerald-600 font-medium mt-4">{t("idea.success")}</p>
+            ) : (
+              <div className="flex gap-2 mt-4">
+                <Input
+                  value={ideaText}
+                  onChange={(e) => setIdeaText(e.target.value)}
+                  placeholder={t("idea.placeholder")}
+                  className="flex-1 h-11 rounded-xl"
+                />
+                <Button onClick={submitIdea} disabled={ideaLoading || !ideaText.trim()} className="h-11 rounded-xl gap-2 px-5">
+                  {ideaLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  {t("idea.submit")}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       </section>

@@ -300,6 +300,29 @@ const translations: Record<Lang, Record<string, string>> = {
     "admin.members.approve": "Approuver ce membre",
     "admin.members.card_preview": "Aperçu de la carte",
     "admin.members.confirm_delete": "Supprimer ce membre définitivement ?",
+
+    // Gender
+    "gender.label": "Vous êtes",
+    "gender.frere": "Un frère",
+    "gender.soeur": "Une soeur",
+
+    // Event registration
+    "event.register": "S'inscrire",
+    "event.unregister": "Se désinscrire",
+    "event.registered": "Inscrit",
+    "event.registrations": "Inscriptions",
+    "event.registration_count": "inscrits",
+    "event.no_registrations": "Aucune inscription pour cet événement.",
+
+    // Ideas
+    "idea.title": "Boîte à idées",
+    "idea.subtitle": "Partagez vos idées de manière anonyme",
+    "idea.placeholder": "Votre idée, suggestion ou commentaire...",
+    "idea.submit": "Envoyer",
+    "idea.success": "Merci ! Votre idée a été envoyée anonymement.",
+    "idea.empty": "Aucune idée soumise pour le moment.",
+    "idea.admin_title": "Idées anonymes",
+    "idea.admin_subtitle": "Idées et suggestions des membres",
   },
   en: {
     // Nav
@@ -596,6 +619,29 @@ const translations: Record<Lang, Record<string, string>> = {
     "admin.members.approve": "Approve this member",
     "admin.members.card_preview": "Card preview",
     "admin.members.confirm_delete": "Permanently delete this member?",
+
+    // Gender
+    "gender.label": "You are",
+    "gender.frere": "A brother",
+    "gender.soeur": "A sister",
+
+    // Event registration
+    "event.register": "Register",
+    "event.unregister": "Unregister",
+    "event.registered": "Registered",
+    "event.registrations": "Registrations",
+    "event.registration_count": "registered",
+    "event.no_registrations": "No registrations for this event.",
+
+    // Ideas
+    "idea.title": "Idea Box",
+    "idea.subtitle": "Share your ideas anonymously",
+    "idea.placeholder": "Your idea, suggestion or comment...",
+    "idea.submit": "Send",
+    "idea.success": "Thank you! Your idea has been sent anonymously.",
+    "idea.empty": "No ideas submitted yet.",
+    "idea.admin_title": "Anonymous Ideas",
+    "idea.admin_subtitle": "Ideas and suggestions from members",
   },
 };
 

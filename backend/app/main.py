@@ -7,7 +7,7 @@ from sqlalchemy import select, text
 from .auth import hash_password
 from .database import engine, Base, async_session
 from .models import Admin
-from .routers import admin, events, members, prayer_times
+from .routers import admin, events, ideas, members, prayer_times
 
 
 async def _migrate_schema():
@@ -17,6 +17,7 @@ async def _migrate_schema():
         ("members", "must_change_password", "BOOLEAN NOT NULL DEFAULT true"),
         ("members", "is_approved", "BOOLEAN NOT NULL DEFAULT false"),
         ("members", "study_level", "VARCHAR(50) NOT NULL DEFAULT 'baccalaureat'"),
+        ("members", "gender", "VARCHAR(10) NOT NULL DEFAULT 'frere'"),
     ]
     nullable_migrations = [
         ("members", "student_id"),
@@ -91,6 +92,7 @@ app.include_router(members.router)
 app.include_router(admin.router)
 app.include_router(prayer_times.router)
 app.include_router(events.router)
+app.include_router(ideas.router)
 
 
 @app.get("/")

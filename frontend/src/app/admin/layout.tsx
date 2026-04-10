@@ -9,6 +9,7 @@ import {
   LayoutDashboard,
   Users,
   CalendarDays,
+  Lightbulb,
   LogOut,
   Menu,
   X,
@@ -20,6 +21,7 @@ const NAV_ITEMS = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/membres", label: "Membres", icon: Users },
   { href: "/admin/evenements", label: "Événements", icon: CalendarDays },
+  { href: "/admin/idees", label: "Idées", icon: Lightbulb },
 ];
 
 export default function AdminLayout({
