@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
 
-export type Lang = "fr" | "ar" | "en";
+export type Lang = "fr" | "en";
 
 const translations: Record<Lang, Record<string, string>> = {
   fr: {
@@ -37,42 +37,6 @@ const translations: Record<Lang, Record<string, string>> = {
     "common.error": "Erreur",
     "theme.toggle": "Changer de thème",
     "lang.fr": "Français",
-    "lang.ar": "العربية",
-    "lang.en": "English",
-  },
-  ar: {
-    "nav.home": "الرئيسية",
-    "nav.profile": "الملف",
-    "nav.card": "البطاقة",
-    "nav.prayers": "الصلوات",
-    "nav.events": "الأنشطة",
-    "nav.logout": "تسجيل الخروج",
-    "nav.faq": "الأسئلة",
-    "nav.about": "من نحن",
-    "nav.member_area": "فضاء العضو",
-    "nav.register": "التسجيل",
-    "prayer.next": "الصلاة القادمة",
-    "prayer.fajr": "الفجر",
-    "prayer.shurooq": "الشروق",
-    "prayer.dhuhr": "الظهر",
-    "prayer.asr": "العصر",
-    "prayer.maghrib": "المغرب",
-    "prayer.isha": "العشاء",
-    "prayer.iqama": "الإقامة",
-    "prayer.jumah": "الجمعة",
-    "events.title": "الأنشطة",
-    "events.upcoming": "القادمة",
-    "events.past": "السابقة",
-    "events.no_events": "لا توجد أنشطة حالياً.",
-    "events.location": "المكان",
-    "common.save": "حفظ",
-    "common.cancel": "إلغاء",
-    "common.back": "رجوع",
-    "common.loading": "جاري التحميل...",
-    "common.error": "خطأ",
-    "theme.toggle": "تغيير السمة",
-    "lang.fr": "Français",
-    "lang.ar": "العربية",
     "lang.en": "English",
   },
   en: {
@@ -107,7 +71,6 @@ const translations: Record<Lang, Record<string, string>> = {
     "common.error": "Error",
     "theme.toggle": "Toggle theme",
     "lang.fr": "Français",
-    "lang.ar": "العربية",
     "lang.en": "English",
   },
 };
@@ -116,14 +79,12 @@ interface I18nContextValue {
   lang: Lang;
   setLang: (lang: Lang) => void;
   t: (key: string) => string;
-  dir: "ltr" | "rtl";
 }
 
 const I18nContext = createContext<I18nContextValue>({
   lang: "fr",
   setLang: () => {},
   t: (key) => key,
-  dir: "ltr",
 });
 
 export function useI18n() {
@@ -141,8 +102,7 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
   const setLang = useCallback((l: Lang) => {
     setLangState(l);
     localStorage.setItem("lang", l);
-    document.documentElement.lang = l === "ar" ? "ar" : l === "en" ? "en" : "fr";
-    document.documentElement.dir = l === "ar" ? "rtl" : "ltr";
+    document.documentElement.lang = l === "en" ? "en" : "fr";
   }, []);
 
   const t = useCallback(
@@ -150,10 +110,8 @@ export function I18nProvider({ children }: { children: React.ReactNode }) {
     [lang]
   );
 
-  const dir = lang === "ar" ? "rtl" : "ltr";
-
   return (
-    <I18nContext.Provider value={{ lang, setLang, t, dir }}>
+    <I18nContext.Provider value={{ lang, setLang, t }}>
       {children}
     </I18nContext.Provider>
   );
