@@ -8,8 +8,10 @@ import { CheckCircle2, LogIn, ArrowLeft, Copy, Check, KeyRound } from "lucide-re
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/Logo";
 import Link from "next/link";
+import { useI18n } from "@/lib/i18n";
 
 export default function InscriptionPage() {
+  const { t } = useI18n();
   const router = useRouter();
   const [generatedPassword, setGeneratedPassword] = useState<string | null>(null);
   const [memberNumber, setMemberNumber] = useState("");
@@ -27,7 +29,7 @@ export default function InscriptionPage() {
       setMemberNumber(result.member.member_number);
     } catch (err: unknown) {
       setError(
-        err instanceof Error ? err.message : "Une erreur est survenue."
+        err instanceof Error ? err.message : t("register.error")
       );
     } finally {
       setLoading(false);
@@ -61,16 +63,16 @@ export default function InscriptionPage() {
 
             <div>
               <h1 className="text-2xl font-bold font-[var(--font-heading)] mb-2">
-                Bienvenue dans l&apos;AEMUL !
+                {t("register.welcome")}
               </h1>
               <p className="text-muted-foreground">
-                Votre inscription a été enregistrée avec succès.
+                {t("register.success")}
               </p>
             </div>
 
             <div className="bg-gradient-to-r from-primary/5 to-[var(--gold)]/5 rounded-xl p-4 border border-primary/10">
               <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">
-                Votre numéro de membre
+                {t("register.member_number")}
               </p>
               <p className="text-2xl font-mono font-bold text-primary">
                 {memberNumber}
@@ -80,14 +82,14 @@ export default function InscriptionPage() {
                 className="mt-1 inline-flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 font-medium transition-colors"
               >
                 {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                {copied ? "Copié !" : "Copier"}
+                {copied ? t("common.copied") : t("common.copy")}
               </button>
             </div>
 
             <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-4 text-left">
               <div className="flex items-center gap-2 mb-2">
                 <KeyRound className="w-4 h-4 text-amber-600" />
-                <p className="text-sm font-semibold text-amber-800">Votre mot de passe temporaire</p>
+                <p className="text-sm font-semibold text-amber-800">{t("register.temp_password")}</p>
               </div>
               <p className="font-mono text-lg font-bold text-amber-900 bg-amber-500/10 rounded-lg px-3 py-2 text-center">
                 {generatedPassword}
@@ -97,17 +99,16 @@ export default function InscriptionPage() {
                 className="mt-2 inline-flex items-center gap-1.5 text-xs text-amber-700 hover:text-amber-900 font-medium transition-colors"
               >
                 {copiedPw ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                {copiedPw ? "Copié !" : "Copier le mot de passe"}
+                {copiedPw ? t("common.copied") : t("register.copy_password")}
               </button>
               <p className="text-[11px] text-amber-700/70 mt-2">
-                Notez-le bien ! Vous devrez le changer lors de votre première connexion.
+                {t("register.password_note")}
               </p>
             </div>
 
             <div className="bg-muted/50 rounded-xl p-4 text-left">
               <p className="text-sm text-muted-foreground">
-                Un administrateur doit approuver votre inscription avant que vous puissiez
-                générer votre carte de membre.
+                {t("register.approval_note")}
               </p>
             </div>
 
@@ -118,7 +119,7 @@ export default function InscriptionPage() {
                   className="w-full gap-2 h-12 shadow-lg shadow-primary/20"
                 >
                   <LogIn className="w-4 h-4" />
-                  Se connecter
+                  {t("common.login")}
                 </Button>
               </Link>
               <Button
@@ -126,7 +127,7 @@ export default function InscriptionPage() {
                 className="w-full text-muted-foreground"
                 onClick={() => router.push("/")}
               >
-                Retour à l&apos;accueil
+                {t("common.back_home")}
               </Button>
             </div>
           </div>
@@ -146,16 +147,16 @@ export default function InscriptionPage() {
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Retour
+          {t("common.back")}
         </Link>
 
         <div className="text-center mb-10">
           <Logo size={56} className="mx-auto mb-4 shadow-md shadow-primary/20 rounded-xl" />
           <h1 className="text-2xl md:text-3xl font-bold font-[var(--font-heading)] mb-2">
-            Devenir membre
+            {t("register.title")}
           </h1>
           <p className="text-muted-foreground">
-            Rejoignez l&apos;AEMUL en quelques étapes
+            {t("register.subtitle")}
           </p>
         </div>
 

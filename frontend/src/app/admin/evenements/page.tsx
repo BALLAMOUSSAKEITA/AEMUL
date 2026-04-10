@@ -14,8 +14,10 @@ import {
   X,
   Edit3,
 } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
 export default function AdminEventsPage() {
+  const { t } = useI18n();
   const [events, setEvents] = useState<AemulEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -80,7 +82,7 @@ export default function AdminEventsPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Supprimer cet événement ?")) return;
+    if (!confirm(t("admin.events.confirm_delete"))) return;
     try {
       await api.deleteEvent(id);
       setEvents((prev) => prev.filter((e) => e.id !== id));
@@ -93,28 +95,28 @@ export default function AdminEventsPage() {
     <div className="space-y-8 max-w-4xl">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold font-[var(--font-heading)]">Événements</h1>
+          <h1 className="text-2xl font-bold font-[var(--font-heading)]">{t("admin.events.title")}</h1>
           <p className="text-muted-foreground text-sm mt-0.5">
-            Gérez les activités et événements de l&apos;AEMUL
+            {t("admin.events.subtitle")}
           </p>
         </div>
         <Button onClick={() => { resetForm(); setShowForm(true); }} className="gap-2">
           <Plus className="w-4 h-4" />
-          Nouvel événement
+          {t("admin.events.new")}
         </Button>
       </div>
 
       {showForm && (
         <div className="bg-card rounded-2xl border p-6">
           <div className="flex items-center justify-between mb-5">
-            <h2 className="font-bold">{editingId ? "Modifier" : "Créer"} un événement</h2>
+            <h2 className="font-bold">{editingId ? t("admin.events.edit") : t("admin.events.create")} {t("admin.events.event_suffix")}</h2>
             <button onClick={resetForm}>
               <X className="w-5 h-5 text-muted-foreground" />
             </button>
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <Label>Titre *</Label>
+              <Label>{t("admin.events.title_label")}</Label>
               <Input
                 value={form.title}
                 onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
@@ -123,18 +125,18 @@ export default function AdminEventsPage() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Description</Label>
+              <Label>{t("admin.events.desc_label")}</Label>
               <textarea
                 value={form.description || ""}
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                placeholder="Détails de l'événement..."
+                placeholder={t("admin.events.desc_placeholder")}
                 rows={3}
                 className="w-full rounded-xl border bg-background px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label>Date et heure *</Label>
+                <Label>{t("admin.events.date_label")}</Label>
                 <Input
                   type="datetime-local"
                   value={form.date}
@@ -143,7 +145,7 @@ export default function AdminEventsPage() {
                 />
               </div>
               <div className="space-y-1.5">
-                <Label>Lieu</Label>
+                <Label>{t("admin.events.location_label")}</Label>
                 <Input
                   value={form.location || ""}
                   onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
@@ -153,11 +155,11 @@ export default function AdminEventsPage() {
             </div>
             <div className="flex gap-3 pt-2">
               <Button type="button" variant="outline" onClick={resetForm}>
-                Annuler
+                {t("common.cancel")}
               </Button>
               <Button type="submit" disabled={formLoading} className="gap-2">
                 {formLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                {editingId ? "Modifier" : "Publier"}
+                {editingId ? t("admin.events.edit") : t("admin.events.publish")}
               </Button>
             </div>
           </form>
@@ -173,9 +175,9 @@ export default function AdminEventsPage() {
           <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
             <CalendarDays className="w-7 h-7 text-muted-foreground" />
           </div>
-          <p className="font-medium text-sm text-muted-foreground">Aucun événement</p>
+          <p className="font-medium text-sm text-muted-foreground">{t("admin.events.no_events")}</p>
           <p className="text-xs text-muted-foreground/60 mt-1">
-            Créez votre premier événement pour informer les membres.
+            {t("admin.events.no_events_desc")}
           </p>
         </div>
       ) : (

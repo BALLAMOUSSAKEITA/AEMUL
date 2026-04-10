@@ -8,10 +8,12 @@ import { ScreenProtection } from "@/components/ScreenProtection";
 import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw, ArrowLeft, Shield, Clock } from "lucide-react";
 import Link from "next/link";
+import { useI18n } from "@/lib/i18n";
 
 const CARD_DISPLAY_DURATION = 60;
 
 export default function CartePage() {
+  const { t } = useI18n();
   const { id } = useParams<{ id: string }>();
   const [member, setMember] = useState<MemberCardData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -29,12 +31,12 @@ export default function CartePage() {
       setMember(data);
     } catch (err: unknown) {
       setError(
-        err instanceof Error ? err.message : "Impossible de charger la carte."
+        err instanceof Error ? err.message : t("member.load_card_error")
       );
     } finally {
       setLoading(false);
     }
-  }, [id]);
+  }, [id, t]);
 
   useEffect(() => {
     loadCard();
@@ -60,7 +62,7 @@ export default function CartePage() {
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
           <p className="text-sm text-muted-foreground">
-            Chargement de la carte...
+            {t("card.loading")}
           </p>
         </div>
       </main>
@@ -74,11 +76,11 @@ export default function CartePage() {
           <div className="w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-4">
             <Shield className="w-7 h-7 text-destructive" />
           </div>
-          <h2 className="font-bold text-lg mb-2">Carte inaccessible</h2>
+          <h2 className="font-bold text-lg mb-2">{t("card.inaccessible")}</h2>
           <p className="text-sm text-muted-foreground mb-6">{error}</p>
           <Button onClick={loadCard} variant="outline" className="gap-2">
             <RefreshCw className="w-4 h-4" />
-            Reessayer
+            {t("card.retry")}
           </Button>
         </div>
       </main>
@@ -99,19 +101,19 @@ export default function CartePage() {
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Retour
+          {t("common.back")}
         </Link>
 
         <div className="text-center">
           <h1 className="text-xl font-bold font-[var(--font-heading)]">
-            Carte de membre
+            {t("card.title")}
           </h1>
           {!expired && (
             <div className="mt-3">
               <div className="inline-flex items-center gap-2 bg-card border rounded-full px-4 py-1.5">
                 <Clock className="w-3.5 h-3.5 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">
-                  Expire dans{" "}
+                  {t("card.expires_in")}{" "}
                   <span
                     className={`font-mono font-bold ${countdown <= 10 ? "text-destructive" : "text-foreground"}`}
                   >
@@ -136,14 +138,14 @@ export default function CartePage() {
               <Shield className="w-8 h-8 text-muted-foreground" />
             </div>
             <div>
-              <h2 className="font-bold text-lg mb-1">Session expiree</h2>
+              <h2 className="font-bold text-lg mb-1">{t("card.expired")}</h2>
               <p className="text-sm text-muted-foreground">
-                La carte a ete masquee pour votre securite.
+                {t("card.expired_desc")}
               </p>
             </div>
             <Button onClick={loadCard} className="gap-2 shadow-lg shadow-primary/20">
               <RefreshCw className="w-4 h-4" />
-              Regenerer la carte
+              {t("card.regenerate")}
             </Button>
           </div>
         ) : (
@@ -155,8 +157,7 @@ export default function CartePage() {
         )}
 
         <p className="text-center text-[11px] text-muted-foreground/60 leading-relaxed">
-          Cette carte est protegee. Elle ne peut pas etre capturee ou
-          telechargee.
+          {t("card.protected")}
         </p>
       </div>
     </main>

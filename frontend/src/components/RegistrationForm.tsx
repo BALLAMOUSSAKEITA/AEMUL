@@ -14,7 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CreateMemberPayload } from "@/lib/api";
-import { useState, useRef } from "react";
+import { useState, useRef, useMemo } from "react";
 import {
   Camera,
   Loader2,
@@ -27,26 +27,16 @@ import {
   ShieldCheck,
   ScrollText,
 } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
-const schema = z.object({
-  first_name: z
-    .string()
-    .min(2, "Le prenom doit contenir au moins 2 caracteres"),
-  last_name: z.string().min(2, "Le nom doit contenir au moins 2 caracteres"),
-  email: z.string().email("Adresse email invalide"),
-  phone: z.string().min(10, "Numero de telephone invalide"),
-  program: z.string().min(2, "Programme requis"),
-  study_level: z.enum(["baccalaureat", "maitrise", "doctorat"], { message: "Niveau d'études requis" }),
-});
-
-type FormData = z.infer<typeof schema>;
-
-const STEPS = [
-  { id: 1, label: "Identité", icon: User },
-  { id: 2, label: "Contact", icon: Mail },
-  { id: 3, label: "Études", icon: GraduationCap },
-  { id: 4, label: "Confirmation", icon: ShieldCheck },
-];
+type FormData = {
+  first_name: string;
+  last_name: string;
+  email: string;
+  phone: string;
+  program: string;
+  study_level: "baccalaureat" | "maitrise" | "doctorat";
+};
 
 interface Props {
   onSubmit: (data: CreateMemberPayload) => void;
@@ -54,11 +44,28 @@ interface Props {
 }
 
 export function RegistrationForm({ onSubmit, loading }: Props) {
+  const { t } = useI18n();
   const [step, setStep] = useState(1);
   const [photoBase64, setPhotoBase64] = useState<string | null>(null);
   const [acceptedPolicy, setAcceptedPolicy] = useState(false);
   const [policyError, setPolicyError] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const schema = useMemo(() => z.object({
+    first_name: z.string().min(2, t("form.firstname_min")),
+    last_name: z.string().min(2, t("form.lastname_min")),
+    email: z.string().email(t("form.email_invalid")),
+    phone: z.string().min(10, t("form.phone_invalid")),
+    program: z.string().min(2, t("form.program_required")),
+    study_level: z.enum(["baccalaureat", "maitrise", "doctorat"], { message: t("form.study_level_required") }),
+  }), [t]);
+
+  const STEPS = [
+    { id: 1, label: t("form.step_identity"), icon: User },
+    { id: 2, label: t("form.step_contact"), icon: Mail },
+    { id: 3, label: t("form.step_studies"), icon: GraduationCap },
+    { id: 4, label: t("form.step_confirm"), icon: ShieldCheck },
+  ];
 
   const {
     register,
@@ -102,9 +109,9 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
   }
 
   const STUDY_LEVEL_LABELS: Record<string, string> = {
-    baccalaureat: "Baccalauréat",
-    maitrise: "Maîtrise",
-    doctorat: "Doctorat",
+    baccalaureat: t("form.bachelor"),
+    maitrise: t("form.master"),
+    doctorat: t("form.doctorate"),
   };
 
   return (
@@ -153,10 +160,10 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
             <div className="space-y-6 animate-fade-in-up">
               <div className="text-center mb-2">
                 <h2 className="text-xl font-bold font-[var(--font-heading)]">
-                  Qui êtes-vous ?
+                  {t("form.who_are_you")}
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Commencez par vos informations personnelles
+                  {t("form.personal_info")}
                 </p>
               </div>
 
@@ -177,13 +184,13 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
                     <div className="flex flex-col items-center gap-1">
                       <Camera className="w-7 h-7 text-muted-foreground group-hover:text-primary transition-colors" />
                       <span className="text-[10px] text-muted-foreground group-hover:text-primary transition-colors">
-                        Ajouter
+                        {t("form.add_photo")}
                       </span>
                     </div>
                   )}
                 </button>
                 <p className="text-xs text-muted-foreground">
-                  Photo de profil (optionnel)
+                  {t("form.photo_optional")}
                 </p>
                 <input
                   ref={fileRef}
@@ -196,7 +203,7 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="first_name">Prénom</Label>
+                  <Label htmlFor="first_name">{t("form.first_name")}</Label>
                   <Input
                     id="first_name"
                     {...register("first_name")}
@@ -210,7 +217,7 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="last_name">Nom</Label>
+                  <Label htmlFor="last_name">{t("form.last_name")}</Label>
                   <Input
                     id="last_name"
                     {...register("last_name")}
@@ -230,7 +237,7 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
                 onClick={nextStep}
                 className="w-full h-11 gap-2"
               >
-                Continuer
+                {t("common.continue")}
                 <ChevronRight className="w-4 h-4" />
               </Button>
             </div>
@@ -240,16 +247,16 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
             <div className="space-y-6 animate-fade-in-up">
               <div className="text-center mb-2">
                 <h2 className="text-xl font-bold font-[var(--font-heading)]">
-                  Comment vous contacter ?
+                  {t("form.contact_title")}
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Vos coordonnées
+                  {t("form.contact_subtitle")}
                 </p>
               </div>
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Adresse email</Label>
+                  <Label htmlFor="email">{t("form.email")}</Label>
                   <Input
                     id="email"
                     type="email"
@@ -265,7 +272,7 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Téléphone</Label>
+                  <Label htmlFor="phone">{t("form.phone")}</Label>
                   <Input
                     id="phone"
                     type="tel"
@@ -289,14 +296,14 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
                   className="flex-1 h-11 gap-2"
                 >
                   <ChevronLeft className="w-4 h-4" />
-                  Retour
+                  {t("common.back")}
                 </Button>
                 <Button
                   type="button"
                   onClick={nextStep}
                   className="flex-1 h-11 gap-2"
                 >
-                  Continuer
+                  {t("common.continue")}
                   <ChevronRight className="w-4 h-4" />
                 </Button>
               </div>
@@ -307,16 +314,16 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
             <div className="space-y-6 animate-fade-in-up">
               <div className="text-center mb-2">
                 <h2 className="text-xl font-bold font-[var(--font-heading)]">
-                  Vos études
+                  {t("form.studies_title")}
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Informations académiques
+                  {t("form.studies_subtitle")}
                 </p>
               </div>
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="program">Programme d&apos;études</Label>
+                  <Label htmlFor="program">{t("form.program")}</Label>
                   <Input
                     id="program"
                     {...register("program")}
@@ -331,18 +338,18 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Niveau d&apos;études</Label>
+                  <Label>{t("form.study_level")}</Label>
                   <Select
                     defaultValue="baccalaureat"
                     onValueChange={(v) => setValue("study_level", v as "baccalaureat" | "maitrise" | "doctorat")}
                   >
                     <SelectTrigger className="h-11">
-                      <SelectValue placeholder="Sélectionnez" />
+                      <SelectValue placeholder={t("form.select")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="baccalaureat">Baccalauréat</SelectItem>
-                      <SelectItem value="maitrise">Maîtrise</SelectItem>
-                      <SelectItem value="doctorat">Doctorat</SelectItem>
+                      <SelectItem value="baccalaureat">{t("form.bachelor")}</SelectItem>
+                      <SelectItem value="maitrise">{t("form.master")}</SelectItem>
+                      <SelectItem value="doctorat">{t("form.doctorate")}</SelectItem>
                     </SelectContent>
                   </Select>
                   {errors.study_level && (
@@ -359,14 +366,14 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
                   className="flex-1 h-11 gap-2"
                 >
                   <ChevronLeft className="w-4 h-4" />
-                  Retour
+                  {t("common.back")}
                 </Button>
                 <Button
                   type="button"
                   onClick={nextStep}
                   className="flex-1 h-11 gap-2"
                 >
-                  Continuer
+                  {t("common.continue")}
                   <ChevronRight className="w-4 h-4" />
                 </Button>
               </div>
@@ -377,25 +384,25 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
             <div className="space-y-6 animate-fade-in-up">
               <div className="text-center mb-2">
                 <h2 className="text-xl font-bold font-[var(--font-heading)]">
-                  Confirmation
+                  {t("form.confirm_title")}
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Vérifiez vos informations et acceptez la politique de confidentialité
+                  {t("form.confirm_subtitle")}
                 </p>
               </div>
 
               <div className="bg-muted/50 rounded-xl p-4 space-y-2.5">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Récapitulatif</h3>
+                <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">{t("form.summary")}</h3>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
-                  <span className="text-muted-foreground">Nom</span>
+                  <span className="text-muted-foreground">{t("form.name_label")}</span>
                   <span className="font-medium">{getValues("first_name")} {getValues("last_name")}</span>
-                  <span className="text-muted-foreground">Email</span>
+                  <span className="text-muted-foreground">{t("form.email_label")}</span>
                   <span className="font-medium truncate">{getValues("email")}</span>
-                  <span className="text-muted-foreground">Téléphone</span>
+                  <span className="text-muted-foreground">{t("form.phone_label")}</span>
                   <span className="font-medium">{getValues("phone")}</span>
-                  <span className="text-muted-foreground">Programme</span>
+                  <span className="text-muted-foreground">{t("form.program_label")}</span>
                   <span className="font-medium">{getValues("program")}</span>
-                  <span className="text-muted-foreground">Niveau</span>
+                  <span className="text-muted-foreground">{t("form.level_label")}</span>
                   <span className="font-medium">{STUDY_LEVEL_LABELS[getValues("study_level")] || getValues("study_level")}</span>
                 </div>
               </div>
@@ -403,7 +410,7 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <ScrollText className="w-4 h-4 text-muted-foreground" />
-                  <h3 className="text-sm font-bold">Politique de confidentialité</h3>
+                  <h3 className="text-sm font-bold">{t("form.privacy_title")}</h3>
                 </div>
                 <div className="bg-muted/30 border rounded-xl p-4 max-h-48 overflow-y-auto text-xs text-muted-foreground leading-relaxed space-y-3 scroll-smooth">
                   <p className="font-semibold text-foreground">Politique de confidentialité — AEMUL</p>
@@ -470,13 +477,12 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
                   className="mt-0.5 w-4 h-4 rounded accent-primary"
                 />
                 <span className="text-sm leading-snug">
-                  J&apos;ai lu et j&apos;accepte la <strong>politique de confidentialité</strong> de l&apos;AEMUL.
-                  Je consens au traitement de mes données personnelles.
+                  {t("form.privacy_accept")}
                 </span>
               </label>
               {policyError && (
                 <p className="text-xs text-destructive">
-                  Vous devez accepter la politique de confidentialité pour continuer.
+                  {t("form.privacy_required")}
                 </p>
               )}
 
@@ -488,7 +494,7 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
                   className="flex-1 h-11 gap-2"
                 >
                   <ChevronLeft className="w-4 h-4" />
-                  Retour
+                  {t("common.back")}
                 </Button>
                 <Button
                   type="submit"
@@ -498,7 +504,7 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
                   {loading && (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   )}
-                  {loading ? "Inscription..." : "Finaliser l'inscription"}
+                  {loading ? t("form.submitting") : t("form.submit")}
                   {!loading && <Check className="w-4 h-4" />}
                 </Button>
               </div>

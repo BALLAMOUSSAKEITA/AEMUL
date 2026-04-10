@@ -15,8 +15,11 @@ import { PrayerTimes } from "@/components/PrayerTimes";
 import { Logo, LogoText } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useI18n } from "@/lib/i18n";
 
 export default function Home() {
+  const { t } = useI18n();
+
   return (
     <main className="flex flex-col min-h-screen">
       <div className="absolute top-4 right-4 z-20 flex items-center gap-1">
@@ -45,10 +48,10 @@ export default function Home() {
               <LogoText className="text-4xl md:text-6xl" />
             </h1>
             <p className="text-lg md:text-xl text-muted-foreground mb-1">
-              Association des Étudiants Musulmans
+              {t("home.subtitle1")}
             </p>
             <p className="text-lg md:text-xl text-muted-foreground mb-10">
-              de l&apos;Université Laval
+              {t("home.subtitle2")}
             </p>
           </div>
 
@@ -58,7 +61,7 @@ export default function Home() {
                 size="lg"
                 className="text-base px-8 py-6 rounded-xl shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300 hover:-translate-y-0.5 gap-2 w-full sm:w-auto"
               >
-                S&apos;inscrire comme membre
+                {t("home.register_btn")}
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </Link>
@@ -69,7 +72,7 @@ export default function Home() {
                 className="text-base px-8 py-6 rounded-xl transition-all duration-300 hover:-translate-y-0.5 gap-2 w-full sm:w-auto"
               >
                 <LogIn className="w-4 h-4" />
-                Espace membre
+                {t("nav.member_area")}
               </Button>
             </Link>
           </div>
@@ -82,10 +85,10 @@ export default function Home() {
           <div className="text-center mb-6">
             <div className="inline-flex items-center gap-2 bg-[var(--gold)]/10 text-[var(--gold)] rounded-full px-4 py-1.5 text-sm font-medium mb-3">
               <Sunrise className="w-3.5 h-3.5" />
-              Heures de prières
+              {t("home.prayer_hours")}
             </div>
             <h2 className="text-2xl md:text-3xl font-bold font-[var(--font-heading)]">
-              Salat du jour
+              {t("home.daily_prayer")}
             </h2>
           </div>
           <PrayerTimes />
@@ -98,10 +101,10 @@ export default function Home() {
           <div className="text-center mb-14">
             <div className="inline-flex items-center gap-2 bg-primary/10 text-primary rounded-full px-4 py-1.5 text-sm font-medium mb-4">
               <Star className="w-3.5 h-3.5" />
-              Pourquoi nous rejoindre
+              {t("home.why_join")}
             </div>
             <h2 className="text-3xl md:text-4xl font-bold font-[var(--font-heading)]">
-              Tout ce qu&apos;il vous faut
+              {t("home.all_you_need")}
             </h2>
           </div>
 
@@ -109,24 +112,24 @@ export default function Home() {
             {[
               {
                 icon: Users,
-                title: "Inscription rapide",
-                desc: "Remplissez le formulaire en quelques minutes et devenez membre officiel de l'AEMUL.",
+                title: t("home.feature1_title"),
+                desc: t("home.feature1_desc"),
                 gradient: "from-primary/10 to-primary/5",
                 iconBg: "bg-primary/15",
                 iconColor: "text-primary",
               },
               {
                 icon: CreditCard,
-                title: "Carte de membre",
-                desc: "Générez votre carte de membre numérique avec QR Code et code-barres unique.",
+                title: t("home.feature2_title"),
+                desc: t("home.feature2_desc"),
                 gradient: "from-[var(--gold)]/10 to-[var(--gold)]/5",
                 iconBg: "bg-[var(--gold)]/15",
                 iconColor: "text-[var(--gold)]",
               },
               {
                 icon: ShieldCheck,
-                title: "Sécurisé",
-                desc: "Vos données sont protégées. Votre carte est générée dynamiquement à chaque consultation.",
+                title: t("home.feature3_title"),
+                desc: t("home.feature3_desc"),
                 gradient: "from-primary/10 to-primary/5",
                 iconBg: "bg-primary/15",
                 iconColor: "text-primary",
@@ -157,18 +160,17 @@ export default function Home() {
         <div className="absolute inset-0 geometric-pattern opacity-10" />
         <div className="relative z-10 max-w-xl mx-auto text-center text-primary-foreground">
           <h2 className="text-3xl md:text-4xl font-bold mb-4 font-[var(--font-heading)]">
-            Prêt à nous rejoindre ?
+            {t("home.cta_title")}
           </h2>
           <p className="text-primary-foreground/80 mb-8">
-            L&apos;inscription ne prend que 2 minutes. Rejoignez la communauté
-            AEMUL dès aujourd&apos;hui.
+            {t("home.cta_desc")}
           </p>
           <Link href="/inscription">
             <Button
               size="lg"
               className="bg-white text-primary hover:bg-white/90 px-8 py-6 text-base rounded-xl shadow-lg gap-2"
             >
-              Commencer l&apos;inscription
+              {t("home.cta_btn")}
               <ArrowRight className="w-4 h-4" />
             </Button>
           </Link>
@@ -183,32 +185,32 @@ export default function Home() {
             <span className="font-semibold text-sm">AEMUL</span>
           </div>
           <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} AEMUL - Tous droits réservés
+            &copy; {new Date().getFullYear()} AEMUL - {t("common.all_rights")}
           </p>
           <div className="flex items-center gap-4">
             <Link
               href="/a-propos"
               className="text-xs text-muted-foreground/60 hover:text-primary transition-colors"
             >
-              À propos
+              {t("nav.about")}
             </Link>
             <Link
               href="/faq"
               className="text-xs text-muted-foreground/60 hover:text-primary transition-colors"
             >
-              FAQ
+              {t("nav.faq")}
             </Link>
             <Link
               href="/connexion"
               className="text-xs text-muted-foreground/60 hover:text-primary transition-colors"
             >
-              Espace membre
+              {t("nav.member_area")}
             </Link>
             <Link
               href="/admin/login"
               className="text-xs text-muted-foreground/60 hover:text-primary transition-colors"
             >
-              Administration
+              {t("nav.admin")}
             </Link>
           </div>
         </div>

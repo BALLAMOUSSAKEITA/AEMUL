@@ -9,8 +9,10 @@ import { Label } from "@/components/ui/label";
 import { Logo } from "@/components/Logo";
 import { Loader2, LogIn, ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { useI18n } from "@/lib/i18n";
 
 export default function ConnexionPage() {
+  const { t } = useI18n();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,7 +28,7 @@ export default function ConnexionPage() {
       localStorage.setItem("member_token", res.access_token);
       router.push("/espace-membre");
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Identifiants invalides.");
+      setError(err instanceof Error ? err.message : t("login.invalid"));
     } finally {
       setLoading(false);
     }
@@ -43,17 +45,17 @@ export default function ConnexionPage() {
           className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Retour
+          {t("common.back")}
         </Link>
 
         <div className="bg-card rounded-2xl border shadow-xl p-8 space-y-6">
           <div className="text-center">
             <Logo size={56} className="mx-auto mb-4 rounded-xl" />
             <h1 className="text-2xl font-bold font-[var(--font-heading)]">
-              Espace membre
+              {t("login.title")}
             </h1>
             <p className="text-sm text-muted-foreground mt-1">
-              Connectez-vous avec vos identifiants
+              {t("login.subtitle")}
             </p>
           </div>
 
@@ -64,7 +66,7 @@ export default function ConnexionPage() {
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("common.email")}</Label>
               <Input
                 id="email"
                 type="email"
@@ -76,7 +78,7 @@ export default function ConnexionPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Mot de passe</Label>
+              <Label htmlFor="password">{t("common.password")}</Label>
               <Input
                 id="password"
                 type="password"
@@ -96,14 +98,14 @@ export default function ConnexionPage() {
               ) : (
                 <LogIn className="w-4 h-4" />
               )}
-              Se connecter
+              {t("common.login")}
             </Button>
           </form>
 
           <p className="text-center text-xs text-muted-foreground">
-            Pas encore membre ?{" "}
+            {t("login.no_account")}{" "}
             <Link href="/inscription" className="text-primary hover:underline font-medium">
-              S&apos;inscrire
+              {t("nav.register")}
             </Link>
           </p>
         </div>
