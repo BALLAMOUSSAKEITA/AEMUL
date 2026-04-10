@@ -50,6 +50,7 @@ export interface Member {
   phone: string;
   program: string;
   study_level: string;
+  gender: string;
   photo_base64: string | null;
   is_active: boolean;
   is_approved: boolean;
@@ -83,6 +84,7 @@ export interface CreateMemberPayload {
   phone: string;
   program: string;
   study_level: string;
+  gender: string;
   photo_base64?: string | null;
 }
 
@@ -193,9 +195,25 @@ export const api = {
 
   getMe: () => authedRequest<{ id: string; email: string; full_name: string }>("/api/auth/me", "admin_token"),
 
+  // ── Event registration (member) ──
+  registerForEvent: (eventId: string) =>
+    authedRequest<{ message: string }>(`/api/events/${eventId}/register`, "member_token", { method: "POST" }),
+
+  unregisterFromEvent: (eventId: string) =>
+    authedRequest<void>(`/api/events/${eventId}/register`, "member_token", { method: "DELETE" }),
+
+  checkEventRegistered: (eventId: string) =>
+    authedRequest<boolean>(`/api/events/${eventId}/registered`, "member_token"),
+
   // ── Events ──
   listEvents: (upcomingOnly = false) =>
     request<Event[]>(`/api/events?upcoming_only=${upcomingOnly}`),
+
+  listEventsAdmin: () =>
+    authedRequest<EventWithRegistrations[]>("/api/events/admin/list", "admin_token"),
+
+  getEventRegistrations: (eventId: string) =>
+    authedRequest<EventRegistrationItem[]>(`/api/events/${eventId}/registrations`, "admin_token"),
 
   createEvent: (data: CreateEventPayload) =>
     authedRequest<Event>("/api/events", "admin_token", {
@@ -211,6 +229,13 @@ export const api = {
 
   deleteEvent: (id: string) =>
     authedRequest<void>(`/api/events/${id}`, "admin_token", { method: "DELETE" }),
+
+  // ── Ideas (anonymous) ──
+  submitIdea: (content: string) =>
+    request<IdeaItem>("/api/ideas", { method: "POST", body: JSON.stringify({ content }) }),
+
+  listIdeas: () =>
+    authedRequest<IdeaItem[]>("/api/ideas", "admin_token"),
 
   // ── Prayer times ──
   getPrayerTimes: () => request<PrayerTimesResponse>("/api/prayer-times"),
@@ -235,6 +260,26 @@ export interface CreateEventPayload {
   date: string;
   location?: string | null;
   is_published?: boolean;
+}
+
+export interface EventWithRegistrations extends Event {
+  registration_count: number;
+}
+
+export interface EventRegistrationItem {
+  id: string;
+  event_id: string;
+  member_id: string;
+  member_name: string;
+  member_email: string;
+  member_gender: string;
+  created_at: string;
+}
+
+export interface IdeaItem {
+  id: string;
+  content: string;
+  created_at: string;
 }
 
 // ── Prayer Times ────────────────────────────────────────────────────────────

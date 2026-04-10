@@ -1,10 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { api, Event as AemulEvent, CreateEventPayload } from "@/lib/api";
+import { api, EventWithRegistrations, EventRegistrationItem, CreateEventPayload } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   CalendarDays,
   Plus,
@@ -13,12 +19,13 @@ import {
   MapPin,
   X,
   Edit3,
+  Users,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 
 export default function AdminEventsPage() {
   const { t } = useI18n();
-  const [events, setEvents] = useState<AemulEvent[]>([]);
+  const [events, setEvents] = useState<EventWithRegistrations[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -29,6 +36,9 @@ export default function AdminEventsPage() {
     date: "",
     location: "",
   });
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
+  const [registrations, setRegistrations] = useState<EventRegistrationItem[]>([]);
+  const [regsLoading, setRegsLoading] = useState(false);
 
   useEffect(() => {
     loadEvents();
@@ -36,7 +46,7 @@ export default function AdminEventsPage() {
 
   async function loadEvents() {
     try {
-      const data = await api.listEvents();
+      const data = await api.listEventsAdmin();
       setEvents(data);
     } catch (e) {
       console.error(e);
@@ -51,7 +61,7 @@ export default function AdminEventsPage() {
     setShowForm(false);
   }
 
-  function startEdit(evt: AemulEvent) {
+  function startEdit(evt: EventWithRegistrations) {
     setForm({
       title: evt.title,
       description: evt.description || "",
@@ -89,6 +99,16 @@ export default function AdminEventsPage() {
     } catch (err) {
       console.error(err);
     }
+  }
+
+  async function viewRegistrations(eventId: string) {
+    setSelectedEventId(eventId);
+    setRegsLoading(true);
+    try {
+      const data = await api.getEventRegistrations(eventId);
+      setRegistrations(data);
+    } catch { /* ignore */ }
+    setRegsLoading(false);
   }
 
   return (
@@ -224,6 +244,14 @@ export default function AdminEventsPage() {
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <button
+                    onClick={() => viewRegistrations(evt.id)}
+                    className="h-8 rounded-lg flex items-center gap-1.5 px-2.5 hover:bg-muted transition-colors text-xs font-medium"
+                    title={t("event.registrations")}
+                  >
+                    <Users className="w-4 h-4 text-primary" />
+                    <span className="text-primary font-bold">{evt.registration_count}</span>
+                  </button>
+                  <button
                     onClick={() => startEdit(evt)}
                     className="w-8 h-8 rounded-lg flex items-center justify-center hover:bg-muted transition-colors"
                   >
@@ -241,6 +269,34 @@ export default function AdminEventsPage() {
           })}
         </div>
       )}
+
+      {/* Registrations dialog */}
+      <Dialog open={!!selectedEventId} onOpenChange={() => setSelectedEventId(null)}>
+        <DialogContent className="max-w-md rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="font-[var(--font-heading)]">{t("event.registrations")}</DialogTitle>
+          </DialogHeader>
+          {regsLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="w-5 h-5 animate-spin text-primary" />
+            </div>
+          ) : registrations.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-6">{t("event.no_registrations")}</p>
+          ) : (
+            <div className="space-y-2 max-h-80 overflow-y-auto">
+              {registrations.map((reg) => (
+                <div key={reg.id} className="flex items-center justify-between p-3 rounded-xl bg-muted/30">
+                  <div>
+                    <p className="font-medium text-sm">{reg.member_name}</p>
+                    <p className="text-xs text-muted-foreground">{reg.member_email}</p>
+                  </div>
+                  <span className="text-xs text-muted-foreground capitalize">{reg.member_gender === "soeur" ? t("gender.soeur") : t("gender.frere")}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

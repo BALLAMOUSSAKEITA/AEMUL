@@ -25,6 +25,9 @@ import {
   ShieldCheck,
   CalendarDays,
   MapPin,
+  Lightbulb,
+  Send,
+  UserCheck,
 } from "lucide-react";
 
 const CARD_DISPLAY_DURATION = 30;
@@ -56,6 +59,12 @@ function EspaceMembreContent() {
 
   const [events, setEvents] = useState<AemulEvent[]>([]);
   const [eventsLoading, setEventsLoading] = useState(false);
+  const [registeredEvents, setRegisteredEvents] = useState<Set<string>>(new Set());
+  const [regLoading, setRegLoading] = useState<string | null>(null);
+
+  const [ideaText, setIdeaText] = useState("");
+  const [ideaLoading, setIdeaLoading] = useState(false);
+  const [ideaSent, setIdeaSent] = useState(false);
 
   const [card, setCard] = useState<MemberCardData | null>(null);
   const [cardLoading, setCardLoading] = useState(false);
@@ -86,7 +95,16 @@ function EspaceMembreContent() {
   useEffect(() => {
     loadMember();
     setEventsLoading(true);
-    api.listEvents(true).then(setEvents).catch(() => {}).finally(() => setEventsLoading(false));
+    api.listEvents(true).then((evts) => {
+      setEvents(evts);
+      // Check registration status for each event
+      Promise.all(evts.map((e) => api.checkEventRegistered(e.id).catch(() => false)))
+        .then((statuses) => {
+          const set = new Set<string>();
+          evts.forEach((e, i) => { if (statuses[i]) set.add(e.id); });
+          setRegisteredEvents(set);
+        });
+    }).catch(() => {}).finally(() => setEventsLoading(false));
   }, [loadMember]);
 
   function startCardCountdown() {
@@ -146,6 +164,32 @@ function EspaceMembreContent() {
     } finally {
       setProfileLoading(false);
     }
+  }
+
+  async function toggleEventRegistration(eventId: string) {
+    setRegLoading(eventId);
+    try {
+      if (registeredEvents.has(eventId)) {
+        await api.unregisterFromEvent(eventId);
+        setRegisteredEvents((prev) => { const s = new Set(prev); s.delete(eventId); return s; });
+      } else {
+        await api.registerForEvent(eventId);
+        setRegisteredEvents((prev) => new Set(prev).add(eventId));
+      }
+    } catch { /* ignore */ }
+    setRegLoading(null);
+  }
+
+  async function submitIdea() {
+    if (!ideaText.trim()) return;
+    setIdeaLoading(true);
+    try {
+      await api.submitIdea(ideaText.trim());
+      setIdeaText("");
+      setIdeaSent(true);
+      setTimeout(() => setIdeaSent(false), 4000);
+    } catch { /* ignore */ }
+    setIdeaLoading(false);
   }
 
   async function loadCard() {
@@ -286,6 +330,31 @@ function EspaceMembreContent() {
                 </div>
                 <span className="text-xs font-medium">{t("member.my_card")}</span>
               </a>
+            </div>
+
+            {/* Idea box */}
+            <div className="bg-card rounded-2xl border p-5">
+              <div className="flex items-center gap-2 mb-3">
+                <Lightbulb className="w-5 h-5 text-[var(--gold)]" />
+                <h3 className="font-bold text-sm">{t("idea.title")}</h3>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3">{t("idea.subtitle")}</p>
+              {ideaSent ? (
+                <p className="text-sm text-emerald-600 font-medium">{t("idea.success")}</p>
+              ) : (
+                <div className="flex gap-2">
+                  <Input
+                    value={ideaText}
+                    onChange={(e) => setIdeaText(e.target.value)}
+                    placeholder={t("idea.placeholder")}
+                    className="flex-1 h-10 rounded-xl text-sm"
+                  />
+                  <Button size="sm" onClick={submitIdea} disabled={ideaLoading || !ideaText.trim()} className="h-10 rounded-xl gap-1.5 px-4">
+                    {ideaLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                    {t("idea.submit")}
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -522,6 +591,24 @@ function EspaceMembreContent() {
                             )}
                           </div>
                         </div>
+                      </div>
+                      <div className="px-4 pb-4">
+                        <Button
+                          size="sm"
+                          variant={registeredEvents.has(evt.id) ? "secondary" : "default"}
+                          className="w-full gap-2 rounded-xl"
+                          disabled={regLoading === evt.id}
+                          onClick={() => toggleEventRegistration(evt.id)}
+                        >
+                          {regLoading === evt.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : registeredEvents.has(evt.id) ? (
+                            <UserCheck className="w-3.5 h-3.5" />
+                          ) : (
+                            <CalendarDays className="w-3.5 h-3.5" />
+                          )}
+                          {registeredEvents.has(evt.id) ? t("event.registered") : t("event.register")}
+                        </Button>
                       </div>
                     </div>
                   );

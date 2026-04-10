@@ -13,6 +13,7 @@ class MemberCreate(BaseModel):
     phone: str
     program: str
     study_level: str = "baccalaureat"
+    gender: str = "frere"
     photo_base64: str | None = None
 
 
@@ -45,6 +46,7 @@ class MemberOut(BaseModel):
     phone: str
     program: str
     study_level: str
+    gender: str = "frere"
     photo_base64: str | None = None
     is_active: bool
     is_approved: bool
@@ -154,3 +156,33 @@ class MemberStats(BaseModel):
     inactive_members: int
     recent_registrations: int
     pending_approvals: int
+
+
+# ── Event Registrations ─────────────────────────────────────────────────────
+
+class EventRegistrationOut(BaseModel):
+    id: uuid.UUID
+    event_id: uuid.UUID
+    member_id: uuid.UUID
+    member_name: str = ""
+    member_email: str = ""
+    member_gender: str = ""
+    created_at: datetime
+
+
+class EventWithRegistrations(EventOut):
+    registration_count: int = 0
+
+
+# ── Ideas ────────────────────────────────────────────────────────────────────
+
+class IdeaCreate(BaseModel):
+    content: str
+
+
+class IdeaOut(BaseModel):
+    id: uuid.UUID
+    content: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
