@@ -20,22 +20,24 @@ async def _migrate_schema():
     ]
     nullable_migrations = [
         ("members", "student_id"),
+        ("members", "study_year"),
     ]
     async with engine.begin() as conn:
         for table, column, col_type in migrations:
             await conn.execute(text(
                 f"ALTER TABLE {table} ADD COLUMN IF NOT EXISTS {column} {col_type}"
             ))
-        for table, column in nullable_migrations:
-            try:
+    for table, column in nullable_migrations:
+        try:
+            async with engine.begin() as conn:
                 await conn.execute(text(
                     f"ALTER TABLE {table} ALTER COLUMN {column} SET DEFAULT ''"
                 ))
                 await conn.execute(text(
                     f"ALTER TABLE {table} ALTER COLUMN {column} DROP NOT NULL"
                 ))
-            except Exception:
-                pass
+        except Exception:
+            pass
 
 
 async def _seed_admin():

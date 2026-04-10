@@ -6,7 +6,6 @@ import { useState, useRef, useEffect } from "react";
 
 const LANGS: { code: Lang; label: string; flag: string }[] = [
   { code: "fr", label: "Français", flag: "🇫🇷" },
-  { code: "ar", label: "العربية", flag: "🇸🇦" },
   { code: "en", label: "English", flag: "🇬🇧" },
 ];
 
