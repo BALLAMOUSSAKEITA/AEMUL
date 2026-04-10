@@ -3,14 +3,15 @@
 import { useEffect, useState } from "react";
 import { api, PrayerTimeEntry } from "@/lib/api";
 import { Clock, Sun, Sunrise, Sunset, Moon, CloudSun } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 
-const PRAYERS = [
-  { key: "fajr", label: "Fajr", arabicLabel: "الفجر", startKey: "fajr_start", iqamaKey: "fajr_iqama", icon: Sunrise, gradient: "from-indigo-500 to-blue-600" },
-  { key: "shurooq", label: "Shurooq", arabicLabel: "الشروق", startKey: "shurooq", iqamaKey: null, icon: Sun, gradient: "from-amber-400 to-orange-500" },
-  { key: "zuhr", label: "Dhuhr", arabicLabel: "الظهر", startKey: "zuhr_start", iqamaKey: "zuhr_iqama", icon: CloudSun, gradient: "from-yellow-400 to-amber-500" },
-  { key: "asr", label: "Asr", arabicLabel: "العصر", startKey: "asr_start", iqamaKey: "asr_iqama", icon: Sun, gradient: "from-orange-400 to-orange-600" },
-  { key: "maghrib", label: "Maghreb", arabicLabel: "المغرب", startKey: "maghrib_start", iqamaKey: "maghrib_iqama", icon: Sunset, gradient: "from-rose-400 to-pink-600" },
-  { key: "isha", label: "Isha", arabicLabel: "العشاء", startKey: "isha_start", iqamaKey: "isha_iqama", icon: Moon, gradient: "from-violet-500 to-indigo-700" },
+const PRAYER_KEYS = [
+  { key: "fajr", labelKey: "prayer.fajr", arabicLabel: "الفجر", startKey: "fajr_start", iqamaKey: "fajr_iqama", icon: Sunrise, gradient: "from-indigo-500 to-blue-600" },
+  { key: "shurooq", labelKey: "prayer.shurooq", arabicLabel: "الشروق", startKey: "shurooq", iqamaKey: null, icon: Sun, gradient: "from-amber-400 to-orange-500" },
+  { key: "zuhr", labelKey: "prayer.dhuhr", arabicLabel: "الظهر", startKey: "zuhr_start", iqamaKey: "zuhr_iqama", icon: CloudSun, gradient: "from-yellow-400 to-amber-500" },
+  { key: "asr", labelKey: "prayer.asr", arabicLabel: "العصر", startKey: "asr_start", iqamaKey: "asr_iqama", icon: Sun, gradient: "from-orange-400 to-orange-600" },
+  { key: "maghrib", labelKey: "prayer.maghrib", arabicLabel: "المغرب", startKey: "maghrib_start", iqamaKey: "maghrib_iqama", icon: Sunset, gradient: "from-rose-400 to-pink-600" },
+  { key: "isha", labelKey: "prayer.isha", arabicLabel: "العشاء", startKey: "isha_start", iqamaKey: "isha_iqama", icon: Moon, gradient: "from-violet-500 to-indigo-700" },
 ] as const;
 
 function getTodayKey(): string {
@@ -33,7 +34,7 @@ function toMin(t: string): number {
 function getNextPrayerIndex(entry: PrayerTimeEntry): number {
   const now = new Date();
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
-  const times = PRAYERS.map((p) =>
+  const times = PRAYER_KEYS.map((p) =>
     toMin(entry[p.startKey as keyof PrayerTimeEntry] as string)
   );
   for (let i = 0; i < times.length; i++) {
@@ -42,23 +43,24 @@ function getNextPrayerIndex(entry: PrayerTimeEntry): number {
   return 0;
 }
 
-function formatCountdown(minutesLeft: number): string {
-  if (minutesLeft < 1) return "Maintenant";
-  const h = Math.floor(minutesLeft / 60);
-  const m = minutesLeft % 60;
-  if (h === 0) return `${m} min`;
-  return `${h}h ${String(m).padStart(2, "0")}min`;
-}
-
 interface PrayerTimesProps {
   compact?: boolean;
 }
 
 export function PrayerTimes({ compact = false }: PrayerTimesProps) {
+  const { t } = useI18n();
   const [entry, setEntry] = useState<PrayerTimeEntry | null>(null);
   const [loading, setLoading] = useState(true);
   const [nextIdx, setNextIdx] = useState(0);
   const [now, setNow] = useState(() => new Date());
+
+  function formatCountdown(minutesLeft: number): string {
+    if (minutesLeft < 1) return t("prayer.now");
+    const h = Math.floor(minutesLeft / 60);
+    const m = minutesLeft % 60;
+    if (h === 0) return `${m} min`;
+    return `${h}h ${String(m).padStart(2, "0")}min`;
+  }
 
   useEffect(() => {
     api
@@ -94,12 +96,12 @@ export function PrayerTimes({ compact = false }: PrayerTimesProps) {
   if (!entry) {
     return (
       <p className="text-center text-sm text-muted-foreground py-4">
-        Heures de prières indisponibles pour le moment.
+        {t("prayer.unavailable")}
       </p>
     );
   }
 
-  const nextPrayer = PRAYERS[nextIdx];
+  const nextPrayer = PRAYER_KEYS[nextIdx];
   const nextTime = entry[nextPrayer.startKey as keyof PrayerTimeEntry] as string;
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
   let minutesLeft = toMin(nextTime) - nowMinutes;
@@ -115,10 +117,10 @@ export function PrayerTimes({ compact = false }: PrayerTimesProps) {
             </div>
             <div>
               <p className="text-white/70 text-[10px] font-semibold uppercase tracking-widest">
-                Prochaine prière
+                {t("prayer.next_prayer")}
               </p>
               <p className="text-white font-bold text-base leading-tight">
-                {nextPrayer.label}
+                {t(nextPrayer.labelKey)}
                 <span className="text-white/50 text-xs font-normal ml-1.5">{nextPrayer.arabicLabel}</span>
               </p>
             </div>
@@ -128,13 +130,13 @@ export function PrayerTimes({ compact = false }: PrayerTimesProps) {
               {formatTime24(nextTime)}
             </p>
             <p className="text-white/60 text-[10px] font-medium">
-              dans {formatCountdown(minutesLeft)}
+              {t("prayer.in")} {formatCountdown(minutesLeft)}
             </p>
           </div>
         </div>
 
         <div className="grid grid-cols-6 divide-x divide-border">
-          {PRAYERS.map((p, i) => {
+          {PRAYER_KEYS.map((p, i) => {
             const startTime = entry[p.startKey as keyof PrayerTimeEntry] as string;
             const isNext = i === nextIdx;
             const isPast = toMin(startTime) <= nowMinutes && !isNext;
@@ -148,7 +150,7 @@ export function PrayerTimes({ compact = false }: PrayerTimesProps) {
                 <p className={`text-[8px] font-bold uppercase tracking-wider mb-1 ${
                   isNext ? "text-primary" : isPast ? "text-muted-foreground/40" : "text-muted-foreground"
                 }`}>
-                  {p.label}
+                  {t(p.labelKey)}
                 </p>
                 <p className={`text-[11px] font-bold font-mono tabular-nums ${
                   isNext ? "text-primary" : isPast ? "text-muted-foreground/40" : "text-foreground"
@@ -172,16 +174,16 @@ export function PrayerTimes({ compact = false }: PrayerTimesProps) {
         <div className="relative flex items-center justify-between">
           <div>
             <p className="text-white/60 text-[10px] font-semibold uppercase tracking-[0.2em]">
-              Prochaine prière
+              {t("prayer.next_prayer")}
             </p>
             <div className="flex items-baseline gap-2 mt-1">
-              <h3 className="text-white font-bold text-2xl">{nextPrayer.label}</h3>
+              <h3 className="text-white font-bold text-2xl">{t(nextPrayer.labelKey)}</h3>
               <span className="text-white/40 text-sm">{nextPrayer.arabicLabel}</span>
             </div>
             <div className="flex items-center gap-2 mt-2">
               <Clock className="w-3.5 h-3.5 text-white/50" />
               <p className="text-white/70 text-sm font-medium">
-                dans {formatCountdown(minutesLeft)}
+                {t("prayer.in")} {formatCountdown(minutesLeft)}
               </p>
             </div>
           </div>
@@ -203,7 +205,7 @@ export function PrayerTimes({ compact = false }: PrayerTimesProps) {
       </div>
 
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-        {PRAYERS.map((p, i) => {
+        {PRAYER_KEYS.map((p, i) => {
           const startTime = entry[p.startKey as keyof PrayerTimeEntry] as string;
           const iqamaTime = p.iqamaKey
             ? (entry[p.iqamaKey as keyof PrayerTimeEntry] as string)
@@ -229,7 +231,7 @@ export function PrayerTimes({ compact = false }: PrayerTimesProps) {
                 </div>
                 {isNext && (
                   <span className="text-[9px] font-bold uppercase tracking-widest bg-white/20 rounded-full px-2 py-0.5">
-                    Suivante
+                    {t("prayer.next_badge")}
                   </span>
                 )}
               </div>
@@ -237,7 +239,7 @@ export function PrayerTimes({ compact = false }: PrayerTimesProps) {
               <div className="flex items-baseline justify-between">
                 <div>
                   <p className={`text-xs font-bold ${isNext ? "text-white" : isPast ? "text-muted-foreground/50" : "text-foreground"}`}>
-                    {p.label}
+                    {t(p.labelKey)}
                   </p>
                   <p className={`text-[10px] mt-0.5 ${isNext ? "text-white/50" : "text-muted-foreground/40"}`}>
                     {p.arabicLabel}
@@ -257,7 +259,7 @@ export function PrayerTimes({ compact = false }: PrayerTimesProps) {
                   <span className={`text-[10px] font-medium ${
                     isNext ? "text-white/50" : "text-muted-foreground/50"
                   }`}>
-                    Iqama
+                    {t("prayer.iqama")}
                   </span>
                   <span className={`text-xs font-bold font-mono tabular-nums ${
                     isNext ? "text-white/80" : isPast ? "text-muted-foreground/30" : "text-muted-foreground"
@@ -283,14 +285,14 @@ export function PrayerTimes({ compact = false }: PrayerTimesProps) {
               </svg>
             </div>
             <div>
-              <p className="text-sm font-bold">Jumu&apos;ah</p>
-              <p className="text-[10px] text-muted-foreground">Prière du vendredi</p>
+              <p className="text-sm font-bold">{t("prayer.jumah")}</p>
+              <p className="text-[10px] text-muted-foreground">{t("prayer.friday")}</p>
             </div>
           </div>
           <div className="flex gap-3">
             {entry.jumah && (
               <div className="flex-1 bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-3 text-center">
-                <p className="text-[10px] text-muted-foreground font-medium mb-1">1ère prière</p>
+                <p className="text-[10px] text-muted-foreground font-medium mb-1">{t("prayer.first_prayer")}</p>
                 <p className="text-lg font-bold font-mono tabular-nums text-emerald-700">
                   {formatTime24(entry.jumah)}
                 </p>
@@ -298,7 +300,7 @@ export function PrayerTimes({ compact = false }: PrayerTimesProps) {
             )}
             {entry.jumah2 && (
               <div className="flex-1 bg-emerald-500/5 border border-emerald-500/10 rounded-xl p-3 text-center">
-                <p className="text-[10px] text-muted-foreground font-medium mb-1">2ème prière</p>
+                <p className="text-[10px] text-muted-foreground font-medium mb-1">{t("prayer.second_prayer")}</p>
                 <p className="text-lg font-bold font-mono tabular-nums text-emerald-700">
                   {formatTime24(entry.jumah2)}
                 </p>

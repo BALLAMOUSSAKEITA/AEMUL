@@ -13,8 +13,10 @@ import {
   Clock,
 } from "lucide-react";
 import Link from "next/link";
+import { useI18n } from "@/lib/i18n";
 
 export default function DashboardPage() {
+  const { t } = useI18n();
   const [stats, setStats] = useState<MemberStats | null>(null);
   const [recent, setRecent] = useState<Member[]>([]);
 
@@ -29,7 +31,7 @@ export default function DashboardPage() {
   const statCards = stats
     ? [
         {
-          label: "Total membres",
+          label: t("admin.dash.total"),
           value: stats.total_members,
           icon: Users,
           gradient: "from-primary/15 to-primary/5",
@@ -37,7 +39,7 @@ export default function DashboardPage() {
           iconColor: "text-primary",
         },
         {
-          label: "Membres actifs",
+          label: t("admin.dash.active"),
           value: stats.active_members,
           icon: UserCheck,
           gradient: "from-emerald-500/15 to-emerald-500/5",
@@ -45,7 +47,7 @@ export default function DashboardPage() {
           iconColor: "text-emerald-600",
         },
         {
-          label: "En attente",
+          label: t("admin.dash.pending"),
           value: stats.pending_approvals,
           icon: Clock,
           gradient: "from-amber-500/15 to-amber-500/5",
@@ -53,7 +55,7 @@ export default function DashboardPage() {
           iconColor: "text-amber-600",
         },
         {
-          label: "30 derniers jours",
+          label: t("admin.dash.recent_30"),
           value: stats.recent_registrations,
           icon: CalendarPlus,
           gradient: "from-blue-500/15 to-blue-500/5",
@@ -69,15 +71,15 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold font-[var(--font-heading)]">
-            Dashboard
+            {t("admin.dash.title")}
           </h1>
           <p className="text-muted-foreground text-sm mt-0.5">
-            Vue d&apos;ensemble de l&apos;association
+            {t("admin.dash.overview")}
           </p>
         </div>
         <div className="hidden sm:flex items-center gap-2 bg-primary/10 text-primary rounded-full px-3 py-1.5 text-xs font-medium">
           <TrendingUp className="w-3.5 h-3.5" />
-          En croissance
+          {t("admin.dash.growing")}
         </div>
       </div>
 
@@ -109,15 +111,15 @@ export default function DashboardPage() {
               <Clock className="w-5 h-5 text-amber-600" />
             </div>
             <div>
-              <p className="font-medium text-sm">{stats.pending_approvals} inscription(s) en attente</p>
-              <p className="text-xs text-muted-foreground">Ces membres attendent votre approbation.</p>
+              <p className="font-medium text-sm">{stats.pending_approvals} {t("admin.dash.pending_count")}</p>
+              <p className="text-xs text-muted-foreground">{t("admin.dash.awaiting")}</p>
             </div>
           </div>
           <Link
             href="/admin/membres"
             className="text-xs text-amber-700 hover:text-amber-900 font-medium inline-flex items-center gap-1"
           >
-            Voir <ArrowRight className="w-3 h-3" />
+            {t("common.view")} <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
       )}
@@ -126,16 +128,16 @@ export default function DashboardPage() {
       <div className="bg-card rounded-2xl border shadow-sm">
         <div className="flex items-center justify-between p-5 pb-0">
           <div>
-            <h2 className="font-bold text-base">Inscriptions récentes</h2>
+            <h2 className="font-bold text-base">{t("admin.dash.recent_title")}</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Les 5 derniers membres inscrits
+              {t("admin.dash.recent_subtitle")}
             </p>
           </div>
           <Link
             href="/admin/membres"
             className="text-xs text-primary hover:text-primary/80 font-medium inline-flex items-center gap-1 transition-colors"
           >
-            Voir tout
+            {t("common.view_all")}
             <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
@@ -147,10 +149,10 @@ export default function DashboardPage() {
                 <Users className="w-7 h-7 text-muted-foreground" />
               </div>
               <p className="text-muted-foreground text-sm font-medium">
-                Aucun membre inscrit
+                {t("admin.dash.no_members")}
               </p>
               <p className="text-muted-foreground/60 text-xs mt-1">
-                Les nouveaux membres apparaîtront ici
+                {t("admin.dash.no_members_desc")}
               </p>
             </div>
           ) : (
@@ -178,14 +180,14 @@ export default function DashboardPage() {
                   <div className="flex items-center gap-2 shrink-0">
                     {!m.is_approved && (
                       <Badge variant="outline" className="text-[10px] border-amber-500/30 text-amber-600">
-                        En attente
+                        {t("common.pending")}
                       </Badge>
                     )}
                     <Badge
                       variant={m.is_active ? "default" : "secondary"}
                       className="text-[10px]"
                     >
-                      {m.is_active ? "Actif" : "Inactif"}
+                      {m.is_active ? t("common.active") : t("common.inactive")}
                     </Badge>
                     <span className="text-xs text-muted-foreground hidden sm:inline">
                       {new Date(m.created_at).toLocaleDateString("fr-CA")}

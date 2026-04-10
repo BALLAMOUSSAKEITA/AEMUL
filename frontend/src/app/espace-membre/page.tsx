@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useI18n } from "@/lib/i18n";
 import {
   CheckCircle2,
   AlertTriangle,
@@ -29,6 +30,7 @@ import {
 const CARD_DISPLAY_DURATION = 30;
 
 function EspaceMembreContent() {
+  const { t } = useI18n();
   const router = useRouter();
   const searchParams = useSearchParams();
   const tab = searchParams.get("tab") || "accueil";
@@ -112,11 +114,11 @@ function EspaceMembreContent() {
     e.preventDefault();
     setPwError(null);
     if (newPassword.length < 6) {
-      setPwError("Le mot de passe doit contenir au moins 6 caractères.");
+      setPwError(t("member.password_min"));
       return;
     }
     if (newPassword !== confirmPassword) {
-      setPwError("Les mots de passe ne correspondent pas.");
+      setPwError(t("member.password_mismatch"));
       return;
     }
     setPwLoading(true);
@@ -125,7 +127,7 @@ function EspaceMembreContent() {
       setShowPasswordModal(false);
       setMember((prev) => prev ? { ...prev, must_change_password: false } : prev);
     } catch (err: unknown) {
-      setPwError(err instanceof Error ? err.message : "Erreur.");
+      setPwError(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setPwLoading(false);
     }
@@ -138,9 +140,9 @@ function EspaceMembreContent() {
     try {
       const updated = await api.updateProfile(profileForm);
       setMember(updated);
-      setProfileMsg("Profil mis à jour !");
+      setProfileMsg(t("member.profile_updated"));
     } catch (err: unknown) {
-      setProfileMsg(err instanceof Error ? err.message : "Erreur.");
+      setProfileMsg(err instanceof Error ? err.message : t("common.error"));
     } finally {
       setProfileLoading(false);
     }
@@ -154,7 +156,7 @@ function EspaceMembreContent() {
       setCard(c);
       startCardCountdown();
     } catch (err: unknown) {
-      setCardError(err instanceof Error ? err.message : "Impossible de charger la carte.");
+      setCardError(err instanceof Error ? err.message : t("member.load_card_error"));
     } finally {
       setCardLoading(false);
     }
@@ -180,10 +182,10 @@ function EspaceMembreContent() {
                 <Lock className="w-6 h-6 text-[var(--gold)]" />
               </div>
               <h2 className="text-lg font-bold font-[var(--font-heading)]">
-                Changez votre mot de passe
+                {t("member.change_password_title")}
               </h2>
               <p className="text-sm text-muted-foreground mt-1">
-                Pour votre sécurité, choisissez un nouveau mot de passe.
+                {t("member.change_password_desc")}
               </p>
             </div>
             <form onSubmit={handlePasswordChange} className="space-y-4">
@@ -193,7 +195,7 @@ function EspaceMembreContent() {
                 </div>
               )}
               <div className="space-y-2">
-                <Label>Nouveau mot de passe</Label>
+                <Label>{t("member.new_password")}</Label>
                 <Input
                   type="password"
                   value={newPassword}
@@ -204,7 +206,7 @@ function EspaceMembreContent() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Confirmer</Label>
+                <Label>{t("member.confirm_password")}</Label>
                 <Input
                   type="password"
                   value={confirmPassword}
@@ -215,7 +217,7 @@ function EspaceMembreContent() {
               </div>
               <Button type="submit" className="w-full min-h-[48px] gap-2 rounded-xl text-base" disabled={pwLoading}>
                 {pwLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                Enregistrer
+                {t("common.save")}
               </Button>
             </form>
           </div>
@@ -227,10 +229,10 @@ function EspaceMembreContent() {
           <div className="space-y-4">
             <div className="bg-gradient-to-br from-primary to-primary/90 rounded-2xl p-5 text-primary-foreground">
               <h1 className="text-xl font-bold font-[var(--font-heading)]">
-                Salam, {member.first_name} !
+                {t("member.greeting")}, {member.first_name} !
               </h1>
               <p className="text-primary-foreground/70 text-sm mt-0.5">
-                Membre #{member.member_number}
+                {t("member.member_number")}{member.member_number}
               </p>
 
               <div className="mt-4 flex gap-2">
@@ -242,7 +244,7 @@ function EspaceMembreContent() {
                       <Clock className="w-3.5 h-3.5" />
                     )}
                     <span className="text-[11px] font-semibold">
-                      {member.is_approved ? "Approuvé" : "En attente"}
+                      {member.is_approved ? t("common.approved") : t("common.pending")}
                     </span>
                   </div>
                 </div>
@@ -250,7 +252,7 @@ function EspaceMembreContent() {
                   <div className="flex items-center gap-1.5">
                     <CreditCard className="w-3.5 h-3.5" />
                     <span className="text-[11px] font-semibold">
-                      {member.is_approved ? "Carte dispo" : "Non dispo"}
+                      {member.is_approved ? t("member.card_available") : t("member.card_unavailable")}
                     </span>
                   </div>
                 </div>
@@ -261,9 +263,9 @@ function EspaceMembreContent() {
               <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-4 flex items-start gap-3">
                 <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-medium text-sm text-amber-800">En attente d&apos;approbation</p>
+                  <p className="font-medium text-sm text-amber-800">{t("member.pending_approval")}</p>
                   <p className="text-xs text-amber-700/70 mt-0.5">
-                    Un administrateur doit valider votre inscription pour accéder à votre carte.
+                    {t("member.pending_approval_desc")}
                   </p>
                 </div>
               </div>
@@ -276,13 +278,13 @@ function EspaceMembreContent() {
                 <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                   <User className="w-5 h-5 text-primary" />
                 </div>
-                <span className="text-xs font-medium">Mon profil</span>
+                <span className="text-xs font-medium">{t("member.my_profile")}</span>
               </a>
               <a href="/espace-membre?tab=carte" className="bg-card rounded-2xl border p-4 flex flex-col items-center gap-2 active:bg-muted/50 transition-colors">
                 <div className="w-10 h-10 rounded-xl bg-[var(--gold)]/10 flex items-center justify-center">
                   <CreditCard className="w-5 h-5 text-[var(--gold)]" />
                 </div>
-                <span className="text-xs font-medium">Ma carte</span>
+                <span className="text-xs font-medium">{t("member.my_card")}</span>
               </a>
             </div>
           </div>
@@ -290,11 +292,11 @@ function EspaceMembreContent() {
 
         {tab === "profil" && (
           <div className="bg-card rounded-2xl border p-5">
-            <h2 className="text-lg font-bold font-[var(--font-heading)] mb-5">Mon profil</h2>
+            <h2 className="text-lg font-bold font-[var(--font-heading)] mb-5">{t("member.my_profile")}</h2>
             <form onSubmit={handleProfileSave} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Prénom</Label>
+                  <Label className="text-xs">{t("member.first_name")}</Label>
                   <Input
                     value={profileForm.first_name}
                     onChange={(e) => setProfileForm((f) => ({ ...f, first_name: e.target.value }))}
@@ -302,7 +304,7 @@ function EspaceMembreContent() {
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Nom</Label>
+                  <Label className="text-xs">{t("member.last_name")}</Label>
                   <Input
                     value={profileForm.last_name}
                     onChange={(e) => setProfileForm((f) => ({ ...f, last_name: e.target.value }))}
@@ -312,12 +314,12 @@ function EspaceMembreContent() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs">Email</Label>
+                <Label className="text-xs">{t("common.email")}</Label>
                 <Input value={member.email} disabled className="h-12 text-base rounded-xl opacity-60" />
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs">Téléphone</Label>
+                <Label className="text-xs">{t("member.phone")}</Label>
                 <Input
                   value={profileForm.phone}
                   onChange={(e) => setProfileForm((f) => ({ ...f, phone: e.target.value }))}
@@ -327,7 +329,7 @@ function EspaceMembreContent() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs">Programme</Label>
+                <Label className="text-xs">{t("member.program")}</Label>
                 <Input
                   value={profileForm.program}
                   onChange={(e) => setProfileForm((f) => ({ ...f, program: e.target.value }))}
@@ -336,24 +338,24 @@ function EspaceMembreContent() {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-xs">Niveau d&apos;études</Label>
+                <Label className="text-xs">{t("member.study_level")}</Label>
                 <Select
                   value={profileForm.study_level}
                   onValueChange={(v) => setProfileForm((f) => ({ ...f, study_level: v ?? f.study_level }))}
                 >
                   <SelectTrigger className="h-12 text-base rounded-xl">
-                    <SelectValue placeholder="Sélectionnez" />
+                    <SelectValue placeholder={t("member.select")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="baccalaureat">Baccalauréat</SelectItem>
-                    <SelectItem value="maitrise">Maîtrise</SelectItem>
-                    <SelectItem value="doctorat">Doctorat</SelectItem>
+                    <SelectItem value="baccalaureat">{t("member.bachelor")}</SelectItem>
+                    <SelectItem value="maitrise">{t("member.master")}</SelectItem>
+                    <SelectItem value="doctorat">{t("member.doctorate")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               {profileMsg && (
-                <p className={`text-sm font-medium ${profileMsg.includes("mis à jour") ? "text-emerald-600" : "text-destructive"}`}>
+                <p className={`text-sm font-medium ${profileMsg === t("member.profile_updated") ? "text-emerald-600" : "text-destructive"}`}>
                   {profileMsg}
                 </p>
               )}
@@ -361,11 +363,11 @@ function EspaceMembreContent() {
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <Button type="submit" className="min-h-[48px] gap-2 rounded-xl flex-1" disabled={profileLoading}>
                   {profileLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-                  Enregistrer
+                  {t("common.save")}
                 </Button>
                 <Button type="button" variant="outline" onClick={() => setShowPasswordModal(true)} className="min-h-[48px] gap-2 rounded-xl flex-1">
                   <Lock className="w-4 h-4" />
-                  Changer mot de passe
+                  {t("member.change_password_btn")}
                 </Button>
               </div>
             </form>
@@ -375,11 +377,11 @@ function EspaceMembreContent() {
         {tab === "carte" && (
           <div className="space-y-4">
             <div className="bg-card rounded-2xl border p-5">
-              <h2 className="text-lg font-bold font-[var(--font-heading)] mb-1">Ma carte</h2>
+              <h2 className="text-lg font-bold font-[var(--font-heading)] mb-1">{t("member.my_card")}</h2>
               <p className="text-sm text-muted-foreground mb-5">
                 {member.is_approved
-                  ? "Votre carte de membre AEMUL."
-                  : "Disponible après approbation."}
+                  ? t("member.card_desc_approved")
+                  : t("member.card_desc_pending")}
               </p>
 
               {!member.is_approved ? (
@@ -387,9 +389,9 @@ function EspaceMembreContent() {
                   <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
                     <Shield className="w-7 h-7 text-muted-foreground" />
                   </div>
-                  <p className="font-medium text-sm text-muted-foreground">En attente</p>
+                  <p className="font-medium text-sm text-muted-foreground">{t("common.pending")}</p>
                   <p className="text-xs text-muted-foreground/60 mt-1">
-                    Un administrateur doit valider votre inscription.
+                    {t("member.card_pending_desc")}
                   </p>
                 </div>
               ) : (
@@ -412,7 +414,7 @@ function EspaceMembreContent() {
                         <div className="flex items-center gap-2">
                           <ShieldCheck className="w-4 h-4 text-amber-600" />
                           <span className="text-xs font-medium text-amber-700">
-                            Masquage auto pour votre sécurité
+                            {t("member.auto_hide")}
                           </span>
                         </div>
                         <div className="flex items-center gap-1.5">
@@ -453,14 +455,14 @@ function EspaceMembreContent() {
                         <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
                           <Eye className="w-8 h-8 text-primary" />
                         </div>
-                        <p className="font-medium text-sm">Afficher ma carte</p>
+                        <p className="font-medium text-sm">{t("member.show_card")}</p>
                         <p className="text-xs text-muted-foreground mt-1 max-w-[240px] mx-auto">
-                          Par mesure de sécurité, votre carte sera visible pendant {CARD_DISPLAY_DURATION} secondes.
+                          {t("member.show_card_desc").replace("{seconds}", String(CARD_DISPLAY_DURATION))}
                         </p>
                       </div>
                       <Button onClick={loadCard} className="w-full min-h-[48px] gap-2 rounded-xl text-base">
                         <CreditCard className="w-4 h-4" />
-                        Afficher ma carte
+                        {t("member.show_card")}
                       </Button>
                     </div>
                   )}
@@ -472,7 +474,7 @@ function EspaceMembreContent() {
 
         {tab === "events" && (
           <div className="space-y-4">
-            <h2 className="text-lg font-bold font-[var(--font-heading)]">Événements à venir</h2>
+            <h2 className="text-lg font-bold font-[var(--font-heading)]">{t("member.upcoming_events")}</h2>
             {eventsLoading ? (
               <div className="flex items-center justify-center py-10">
                 <Loader2 className="w-6 h-6 animate-spin text-primary" />
@@ -482,9 +484,9 @@ function EspaceMembreContent() {
                 <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
                   <CalendarDays className="w-7 h-7 text-muted-foreground" />
                 </div>
-                <p className="font-medium text-sm text-muted-foreground">Aucun événement prévu</p>
+                <p className="font-medium text-sm text-muted-foreground">{t("member.no_events")}</p>
                 <p className="text-xs text-muted-foreground/60 mt-1">
-                  Revenez bientôt pour découvrir nos prochaines activités.
+                  {t("member.no_events_desc")}
                 </p>
               </div>
             ) : (

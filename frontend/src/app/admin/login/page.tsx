@@ -8,8 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Lock } from "lucide-react";
 import { Logo } from "@/components/Logo";
+import { useI18n } from "@/lib/i18n";
 
 export default function AdminLoginPage() {
+  const { t } = useI18n();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -26,7 +28,7 @@ export default function AdminLoginPage() {
       router.push("/admin/dashboard");
     } catch (err: unknown) {
       setError(
-        err instanceof Error ? err.message : "Identifiants invalides."
+        err instanceof Error ? err.message : t("login.invalid")
       );
     } finally {
       setLoading(false);
@@ -41,11 +43,10 @@ export default function AdminLoginPage() {
         <div className="relative z-10 text-white max-w-md">
           <Logo size={64} className="mb-8 shadow-lg rounded-2xl" />
           <h1 className="text-4xl font-bold font-[var(--font-heading)] mb-4 leading-tight">
-            Panneau d&apos;administration
+            {t("admin.login.title")}
           </h1>
           <p className="text-white/70 text-lg leading-relaxed">
-            Gerez les membres de l&apos;AEMUL, suivez les inscriptions et
-            administrez l&apos;association depuis un seul endroit.
+            {t("admin.login.desc")}
           </p>
           <div className="mt-10 flex items-center gap-3">
             <div className="h-px flex-1 bg-white/20" />
@@ -69,10 +70,10 @@ export default function AdminLoginPage() {
               <Lock className="w-6 h-6 text-primary" />
             </div>
             <h2 className="text-2xl font-bold font-[var(--font-heading)]">
-              Connexion
+              {t("admin.login.heading")}
             </h2>
             <p className="text-muted-foreground mt-1">
-              Entrez vos identifiants administrateur
+              {t("admin.login.subtitle")}
             </p>
           </div>
 
@@ -83,7 +84,7 @@ export default function AdminLoginPage() {
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">{t("common.email")}</Label>
               <Input
                 id="email"
                 type="email"
@@ -95,7 +96,7 @@ export default function AdminLoginPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Mot de passe</Label>
+              <Label htmlFor="password">{t("common.password")}</Label>
               <Input
                 id="password"
                 type="password"
@@ -113,7 +114,7 @@ export default function AdminLoginPage() {
               {loading && (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
               )}
-              Se connecter
+              {t("common.login")}
             </Button>
           </form>
         </div>
