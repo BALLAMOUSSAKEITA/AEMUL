@@ -40,8 +40,6 @@ def _generate_member_number(seq: int) -> str:
 
 @router.post("", response_model=MemberRegistrationResult, status_code=status.HTTP_201_CREATED)
 async def create_member(data: MemberCreate, db: AsyncSession = Depends(get_db)):
-    import traceback
-
     existing = await db.execute(
         select(Member).where(Member.email == data.email)
     )
@@ -56,24 +54,17 @@ async def create_member(data: MemberCreate, db: AsyncSession = Depends(get_db)):
 
     raw_password = generate_password()
 
-    try:
-        member = Member(
-            member_number=_generate_member_number(seq),
-            hashed_password=hash_password(raw_password),
-            must_change_password=True,
-            is_approved=False,
-            student_id="",
-            **data.model_dump(),
-        )
-        db.add(member)
-        await db.flush()
-        await db.refresh(member)
-    except Exception as e:
-        tb = traceback.format_exc()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Erreur création membre: {str(e)} | {tb[-500:]}",
-        )
+    member = Member(
+        member_number=_generate_member_number(seq),
+        hashed_password=hash_password(raw_password),
+        must_change_password=True,
+        is_approved=False,
+        student_id="",
+        **data.model_dump(),
+    )
+    db.add(member)
+    await db.flush()
+    await db.refresh(member)
     return MemberRegistrationResult(member=MemberOut.model_validate(member), generated_password=raw_password)
 
 

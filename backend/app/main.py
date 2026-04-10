@@ -20,7 +20,6 @@ async def _migrate_schema():
     ]
     nullable_migrations = [
         ("members", "student_id"),
-        ("members", "study_year"),
     ]
     async with engine.begin() as conn:
         for table, column, col_type in migrations:
@@ -38,6 +37,17 @@ async def _migrate_schema():
                 ))
         except Exception:
             pass
+    # Fix study_year column: drop NOT NULL and set a proper default
+    try:
+        async with engine.begin() as conn:
+            await conn.execute(text(
+                "ALTER TABLE members ALTER COLUMN study_year DROP NOT NULL"
+            ))
+            await conn.execute(text(
+                "ALTER TABLE members ALTER COLUMN study_year SET DEFAULT NULL"
+            ))
+    except Exception:
+        pass
 
 
 async def _seed_admin():
