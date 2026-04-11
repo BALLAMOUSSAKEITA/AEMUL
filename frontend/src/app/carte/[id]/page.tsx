@@ -58,7 +58,7 @@ export default function CartePage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-gradient-to-b from-primary/5 to-background">
+      <main className="min-h-screen-safe flex items-center justify-center bg-gradient-to-b from-primary/5 to-background">
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
           <p className="text-sm text-muted-foreground">
@@ -71,7 +71,7 @@ export default function CartePage() {
 
   if (error) {
     return (
-      <main className="min-h-screen flex flex-col items-center justify-center gap-4 p-4">
+      <main className="min-h-screen-safe flex flex-col items-center justify-center gap-4 p-4">
         <div className="bg-card rounded-2xl border p-8 text-center max-w-sm">
           <div className="w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center mx-auto mb-4">
             <Shield className="w-7 h-7 text-destructive" />
@@ -91,7 +91,7 @@ export default function CartePage() {
   const progressPercent = (countdown / CARD_DISPLAY_DURATION) * 100;
 
   return (
-    <main className="min-h-screen py-8 px-4 relative overflow-y-auto">
+    <main className="min-h-screen-safe py-8 px-4 relative overflow-y-auto">
       <div className="absolute inset-0 geometric-pattern" />
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background" />
 

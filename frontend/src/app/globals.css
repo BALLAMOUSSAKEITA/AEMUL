@@ -132,14 +132,19 @@
   }
   html {
     @apply font-sans;
-    /* Fix mobile keyboard hiding inputs */
-    scroll-padding-bottom: 300px;
   }
-  /* Ensure focused inputs scroll into view on mobile */
-  input:focus,
-  textarea:focus,
-  select:focus {
-    scroll-margin-bottom: 200px;
+}
+
+/* Use dynamic viewport height on mobile (shrinks when keyboard opens) */
+.min-h-screen-safe {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* When keyboard is open, add bottom padding so inputs aren't hidden */
+@supports (height: 100dvh) {
+  .keyboard-aware {
+    padding-bottom: env(keyboard-inset-height, 0px);
   }
 }
 

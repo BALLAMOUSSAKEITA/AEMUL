@@ -51,7 +51,7 @@ export default function InscriptionPage() {
 
   if (generatedPassword) {
     return (
-      <main className="min-h-screen flex items-center justify-center p-4 relative overflow-y-auto">
+      <main className="min-h-screen-safe flex items-center justify-center p-4 relative overflow-y-auto">
         <div className="absolute inset-0 geometric-pattern" />
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background" />
 
@@ -137,7 +137,7 @@ export default function InscriptionPage() {
   }
 
   return (
-    <main className="min-h-screen py-8 px-4 relative overflow-y-auto">
+    <main className="min-h-screen-safe py-8 px-4 relative overflow-y-auto">
       <div className="absolute inset-0 geometric-pattern" />
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background" />
 
