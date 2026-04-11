@@ -28,6 +28,7 @@ export const viewport: Viewport = {
   userScalable: false,
   viewportFit: "cover",
   themeColor: "#1b6b3a",
+  interactiveWidget: "resizes-content",
 };
 
 import { I18nProvider } from "@/lib/i18n";

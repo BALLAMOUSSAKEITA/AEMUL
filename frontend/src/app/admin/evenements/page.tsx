@@ -22,6 +22,7 @@ import {
   Users,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 export default function AdminEventsPage() {
   const { t } = useI18n();
@@ -39,6 +40,7 @@ export default function AdminEventsPage() {
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [registrations, setRegistrations] = useState<EventRegistrationItem[]>([]);
   const [regsLoading, setRegsLoading] = useState(false);
+  const [confirmAction, setConfirmAction] = useState<{ key: string; action: () => void } | null>(null);
 
   useEffect(() => {
     loadEvents();
@@ -91,14 +93,18 @@ export default function AdminEventsPage() {
     }
   }
 
-  async function handleDelete(id: string) {
-    if (!confirm(t("admin.events.confirm_delete"))) return;
-    try {
-      await api.deleteEvent(id);
-      setEvents((prev) => prev.filter((e) => e.id !== id));
-    } catch (err) {
-      console.error(err);
-    }
+  function handleDelete(id: string) {
+    setConfirmAction({
+      key: "confirm.delete_event",
+      action: async () => {
+        try {
+          await api.deleteEvent(id);
+          setEvents((prev) => prev.filter((e) => e.id !== id));
+        } catch (err) {
+          console.error(err);
+        }
+      },
+    });
   }
 
   async function viewRegistrations(eventId: string) {
@@ -297,6 +303,16 @@ export default function AdminEventsPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!confirmAction}
+        onOpenChange={(open) => { if (!open) setConfirmAction(null); }}
+        title={confirmAction ? t(confirmAction.key) : ""}
+        confirmLabel={t("confirm.yes")}
+        cancelLabel={t("confirm.no")}
+        onConfirm={() => confirmAction?.action()}
+        variant="destructive"
+      />
     </div>
   );
 }
