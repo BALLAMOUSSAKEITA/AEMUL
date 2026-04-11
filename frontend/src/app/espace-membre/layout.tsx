@@ -34,6 +34,18 @@ function LayoutShell({ children }: { children: React.ReactNode }) {
   const [checked, setChecked] = useState(false);
 
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [keyboardOpen, setKeyboardOpen] = useState(false);
+
+  useEffect(() => {
+    function onFocusIn(e: FocusEvent) {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA") setKeyboardOpen(true);
+    }
+    function onFocusOut() { setKeyboardOpen(false); }
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("focusout", onFocusOut);
+    return () => { document.removeEventListener("focusin", onFocusIn); document.removeEventListener("focusout", onFocusOut); };
+  }, []);
 
   const NAV_ITEMS = [
     { key: "accueil", href: "/espace-membre", icon: Home, label: t("nav.home") },
@@ -132,11 +144,11 @@ function LayoutShell({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <main className="flex-1 px-4 py-4 pb-24 md:pb-6 max-w-5xl mx-auto w-full">
+        <main className={`flex-1 px-4 py-4 md:pb-6 max-w-5xl mx-auto w-full ${keyboardOpen ? "pb-6" : "pb-24"}`}>
           {member && children}
         </main>
 
-        <nav className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur-md border-t safe-bottom">
+        <nav className={`md:hidden fixed bottom-0 inset-x-0 z-40 bg-background/95 backdrop-blur-md border-t safe-bottom transition-transform duration-200 ${keyboardOpen ? "translate-y-full" : ""}`}>
           <div className="flex items-stretch">
             {NAV_ITEMS.map((item) => {
               const isActive = activeTab === item.key;
