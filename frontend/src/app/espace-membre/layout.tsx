@@ -79,7 +79,7 @@ function LayoutShell({ children }: { children: React.ReactNode }) {
 
   if (!checked) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen-safe flex items-center justify-center bg-background">
         <div className="w-6 h-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
       </div>
     );
@@ -87,7 +87,7 @@ function LayoutShell({ children }: { children: React.ReactNode }) {
 
   return (
     <MemberContext.Provider value={member}>
-      <div className="min-h-screen bg-muted/30 flex flex-col">
+      <div className="min-h-screen-safe bg-muted/30 flex flex-col">
         <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-md border-b safe-top">
           <div className="flex items-center justify-between px-4 py-3 max-w-5xl mx-auto">
             <Link href="/espace-membre" className="flex items-center gap-2.5">
@@ -184,7 +184,7 @@ export default function EspaceMembreLayout({
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="min-h-screen-safe flex items-center justify-center bg-background">
           <div className="w-6 h-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
         </div>
       }

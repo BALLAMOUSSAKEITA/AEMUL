@@ -71,14 +71,44 @@ export default function RootLayout({
               }
               // Fix mobile keyboard hiding focused inputs
               (function() {
-                var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-                if (!isMobile) return;
+                if (!window.visualViewport) return;
+                var pendingScroll = null;
+
+                // When keyboard opens, visualViewport height shrinks
+                window.visualViewport.addEventListener('resize', function() {
+                  // Add CSS variable with actual visible height
+                  document.documentElement.style.setProperty(
+                    '--vh-visible',
+                    window.visualViewport.height + 'px'
+                  );
+
+                  // Scroll focused input into visible area
+                  var el = document.activeElement;
+                  if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA')) {
+                    clearTimeout(pendingScroll);
+                    pendingScroll = setTimeout(function() {
+                      var rect = el.getBoundingClientRect();
+                      var vpHeight = window.visualViewport.height;
+                      var vpTop = window.visualViewport.offsetTop;
+                      // If input is below the visible viewport
+                      if (rect.bottom > vpTop + vpHeight - 20) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }
+                      // If input is above the visible viewport
+                      if (rect.top < vpTop + 20) {
+                        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                      }
+                    }, 100);
+                  }
+                });
+
+                // Also scroll on focus
                 document.addEventListener('focusin', function(e) {
                   var el = e.target;
                   if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
                     setTimeout(function() {
                       el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }, 350);
+                    }, 400);
                   }
                 });
               })();
