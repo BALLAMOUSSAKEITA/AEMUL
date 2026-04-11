@@ -230,8 +230,9 @@ function EspaceMembreContent() {
   return (
     <>
       {showPasswordModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
-          <div className="bg-card rounded-t-3xl sm:rounded-2xl border shadow-2xl p-6 sm:p-8 w-full sm:max-w-sm space-y-5 safe-bottom my-auto">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm overflow-y-auto">
+          <div className="min-h-full flex items-center justify-center p-4">
+          <div className="bg-card rounded-2xl border shadow-2xl p-6 sm:p-8 w-full max-w-sm space-y-5">
             <div className="text-center">
               <div className="w-12 h-12 rounded-full bg-[var(--gold)]/10 flex items-center justify-center mx-auto mb-3">
                 <Lock className="w-6 h-6 text-[var(--gold)]" />
@@ -275,6 +276,7 @@ function EspaceMembreContent() {
                 {t("common.save")}
               </Button>
             </form>
+          </div>
           </div>
         </div>
       )}

@@ -36,7 +36,7 @@ export default function AdminLoginPage() {
   }
 
   return (
-    <main className="min-h-screen flex relative overflow-hidden">
+    <main className="min-h-screen flex relative overflow-y-auto">
       {/* Left decorative panel */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#14532d] via-[#1b6b3a] to-[#14532d] relative items-center justify-center p-12">
         <div className="absolute inset-0 geometric-pattern opacity-10" />

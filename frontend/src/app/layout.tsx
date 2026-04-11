@@ -69,6 +69,19 @@ export default function RootLayout({
                   navigator.serviceWorker.register('/sw.js');
                 });
               }
+              // Fix mobile keyboard hiding focused inputs
+              (function() {
+                var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                if (!isMobile) return;
+                document.addEventListener('focusin', function(e) {
+                  var el = e.target;
+                  if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                    setTimeout(function() {
+                      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 350);
+                  }
+                });
+              })();
             `,
           }}
         />
