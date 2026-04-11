@@ -91,7 +91,7 @@ export default function CartePage() {
   const progressPercent = (countdown / CARD_DISPLAY_DURATION) * 100;
 
   return (
-    <main className="min-h-screen py-8 px-4 relative overflow-hidden">
+    <main className="min-h-screen py-8 px-4 relative overflow-y-auto">
       <div className="absolute inset-0 geometric-pattern" />
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-background to-background" />
 
