@@ -323,6 +323,18 @@ const translations: Record<Lang, Record<string, string>> = {
     "idea.empty": "Aucune idée soumise pour le moment.",
     "idea.admin_title": "Idées anonymes",
     "idea.admin_subtitle": "Idées et suggestions des membres",
+
+    // Confirmations
+    "confirm.yes": "Oui",
+    "confirm.no": "Non",
+    "confirm.event_register": "Voulez-vous vous inscrire à cet événement ?",
+    "confirm.event_unregister": "Voulez-vous vous désinscrire de cet événement ?",
+    "confirm.delete_event": "Voulez-vous supprimer cet événement ?",
+    "confirm.delete_member": "Voulez-vous supprimer ce membre définitivement ?",
+    "confirm.approve_member": "Voulez-vous approuver ce membre ?",
+    "confirm.logout": "Voulez-vous vous déconnecter ?",
+    "confirm.change_password": "Voulez-vous enregistrer le nouveau mot de passe ?",
+    "confirm.save_profile": "Voulez-vous enregistrer les modifications ?",
   },
   en: {
     // Nav
@@ -642,6 +654,18 @@ const translations: Record<Lang, Record<string, string>> = {
     "idea.empty": "No ideas submitted yet.",
     "idea.admin_title": "Anonymous Ideas",
     "idea.admin_subtitle": "Ideas and suggestions from members",
+
+    // Confirmations
+    "confirm.yes": "Yes",
+    "confirm.no": "No",
+    "confirm.event_register": "Do you want to register for this event?",
+    "confirm.event_unregister": "Do you want to unregister from this event?",
+    "confirm.delete_event": "Do you want to delete this event?",
+    "confirm.delete_member": "Do you want to permanently delete this member?",
+    "confirm.approve_member": "Do you want to approve this member?",
+    "confirm.logout": "Do you want to log out?",
+    "confirm.change_password": "Do you want to save the new password?",
+    "confirm.save_profile": "Do you want to save the changes?",
   },
 };
 

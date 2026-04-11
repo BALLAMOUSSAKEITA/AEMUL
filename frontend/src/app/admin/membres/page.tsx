@@ -33,6 +33,7 @@ import {
 } from "lucide-react";
 import { MemberCard } from "@/components/MemberCard";
 import { useI18n } from "@/lib/i18n";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 
 export default function MembresPage() {
   const { t } = useI18n();
@@ -42,6 +43,7 @@ export default function MembresPage() {
   const [loading, setLoading] = useState(true);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
   const [filter, setFilter] = useState<"all" | "pending" | "approved">("all");
+  const [confirmAction, setConfirmAction] = useState<{ key: string; action: () => void; variant?: "default" | "destructive" } | null>(null);
 
   const loadMembers = useCallback(async () => {
     setLoading(true);
@@ -79,23 +81,23 @@ export default function MembresPage() {
     }
   }
 
-  async function approveMember(id: string) {
-    try {
-      await api.approveMember(id);
-      loadMembers();
-    } catch (err) {
-      console.error(err);
-    }
+  function requestApprove(id: string) {
+    setConfirmAction({
+      key: "confirm.approve_member",
+      action: async () => {
+        try { await api.approveMember(id); loadMembers(); } catch (err) { console.error(err); }
+      },
+    });
   }
 
-  async function deleteMember(id: string) {
-    if (!confirm(t("admin.members.confirm_delete"))) return;
-    try {
-      await api.deleteMember(id);
-      loadMembers();
-    } catch (err) {
-      console.error(err);
-    }
+  function requestDelete(id: string) {
+    setConfirmAction({
+      key: "confirm.delete_member",
+      variant: "destructive",
+      action: async () => {
+        try { await api.deleteMember(id); loadMembers(); } catch (err) { console.error(err); }
+      },
+    });
   }
 
   const EmptyState = () => (
@@ -225,7 +227,7 @@ export default function MembresPage() {
                           <Eye className="w-4 h-4" />
                         </Button>
                         {!m.is_approved && (
-                          <Button variant="ghost" size="sm" onClick={() => approveMember(m.id)} className="h-8 w-8 p-0 rounded-lg" title={t("admin.members.approve")}>
+                          <Button variant="ghost" size="sm" onClick={() => requestApprove(m.id)} className="h-8 w-8 p-0 rounded-lg" title={t("admin.members.approve")}>
                             <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                           </Button>
                         )}
@@ -236,7 +238,7 @@ export default function MembresPage() {
                             <ToggleLeft className="w-4 h-4 text-muted-foreground" />
                           )}
                         </Button>
-                        <Button variant="ghost" size="sm" onClick={() => deleteMember(m.id)} className="h-8 w-8 p-0 rounded-lg hover:bg-destructive/10" title={t("common.delete")}>
+                        <Button variant="ghost" size="sm" onClick={() => requestDelete(m.id)} className="h-8 w-8 p-0 rounded-lg hover:bg-destructive/10" title={t("common.delete")}>
                           <Trash2 className="w-4 h-4 text-destructive" />
                         </Button>
                       </div>
@@ -286,7 +288,7 @@ export default function MembresPage() {
                     <Eye className="w-4 h-4" />
                   </Button>
                   {!m.is_approved && (
-                    <Button variant="ghost" size="sm" onClick={() => approveMember(m.id)} className="h-8 w-8 p-0 rounded-lg">
+                    <Button variant="ghost" size="sm" onClick={() => requestApprove(m.id)} className="h-8 w-8 p-0 rounded-lg">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                     </Button>
                   )}
@@ -297,7 +299,7 @@ export default function MembresPage() {
                       <ToggleLeft className="w-4 h-4 text-muted-foreground" />
                     )}
                   </Button>
-                  <Button variant="ghost" size="sm" onClick={() => deleteMember(m.id)} className="h-8 w-8 p-0 rounded-lg hover:bg-destructive/10">
+                  <Button variant="ghost" size="sm" onClick={() => requestDelete(m.id)} className="h-8 w-8 p-0 rounded-lg hover:bg-destructive/10">
                     <Trash2 className="w-4 h-4 text-destructive" />
                   </Button>
                 </div>
@@ -356,7 +358,7 @@ export default function MembresPage() {
               </div>
 
               {!selectedMember.is_approved && (
-                <Button onClick={() => { approveMember(selectedMember.id); setSelectedMember(null); }} className="w-full gap-2">
+                <Button onClick={() => { requestApprove(selectedMember.id); setSelectedMember(null); }} className="w-full gap-2">
                   <CheckCircle2 className="w-4 h-4" />
                   {t("admin.members.approve")}
                 </Button>
@@ -382,6 +384,16 @@ export default function MembresPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={!!confirmAction}
+        onOpenChange={(open) => { if (!open) setConfirmAction(null); }}
+        title={confirmAction ? t(confirmAction.key) : ""}
+        confirmLabel={t("confirm.yes")}
+        cancelLabel={t("confirm.no")}
+        onConfirm={() => confirmAction?.action()}
+        variant={confirmAction?.variant || "default"}
+      />
     </div>
   );
 }

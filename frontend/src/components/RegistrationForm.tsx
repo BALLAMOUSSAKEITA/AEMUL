@@ -205,22 +205,18 @@ export function RegistrationForm({ onSubmit, loading }: Props) {
 
               <div className="space-y-2">
                 <Label>{t("gender.label")}</Label>
-                <div className="grid grid-cols-2 gap-3">
-                  {(["frere", "soeur"] as const).map((g) => (
-                    <button
-                      key={g}
-                      type="button"
-                      onClick={() => setValue("gender", g)}
-                      className={`h-11 rounded-xl border-2 text-sm font-medium transition-all ${
-                        getValues("gender") === g
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border hover:border-primary/40"
-                      }`}
-                    >
-                      {t(`gender.${g}`)}
-                    </button>
-                  ))}
-                </div>
+                <Select
+                  defaultValue="frere"
+                  onValueChange={(v) => setValue("gender", v as "frere" | "soeur")}
+                >
+                  <SelectTrigger className="h-11">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="frere">{t("gender.frere")}</SelectItem>
+                    <SelectItem value="soeur">{t("gender.soeur")}</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

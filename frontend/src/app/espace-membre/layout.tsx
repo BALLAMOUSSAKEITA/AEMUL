@@ -10,6 +10,7 @@ import { schedulePrayerNotifications, requestNotificationPermission } from "@/li
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useI18n } from "@/lib/i18n";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
   Home,
   User,
@@ -31,6 +32,8 @@ function LayoutShell({ children }: { children: React.ReactNode }) {
   const activeTab = searchParams.get("tab") || "accueil";
   const [member, setMember] = useState<Member | null>(null);
   const [checked, setChecked] = useState(false);
+
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const NAV_ITEMS = [
     { key: "accueil", href: "/espace-membre", icon: Home, label: t("nav.home") },
@@ -108,7 +111,7 @@ function LayoutShell({ children }: { children: React.ReactNode }) {
                 </Link>
               ))}
               <button
-                onClick={logout}
+                onClick={() => setShowLogoutConfirm(true)}
                 className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors ml-2"
               >
                 <LogOut className="w-4 h-4" />
@@ -120,7 +123,7 @@ function LayoutShell({ children }: { children: React.ReactNode }) {
               <LanguageSwitcher />
               <ThemeToggle />
               <button
-                onClick={logout}
+                onClick={() => setShowLogoutConfirm(true)}
                 className="md:hidden flex items-center gap-1.5 text-xs text-muted-foreground active:text-foreground ml-1"
               >
                 <LogOut className="w-4 h-4" />
@@ -160,6 +163,15 @@ function LayoutShell({ children }: { children: React.ReactNode }) {
 
         <InstallPrompt />
       </div>
+
+      <ConfirmDialog
+        open={showLogoutConfirm}
+        onOpenChange={setShowLogoutConfirm}
+        title={t("confirm.logout")}
+        confirmLabel={t("confirm.yes")}
+        cancelLabel={t("confirm.no")}
+        onConfirm={logout}
+      />
     </MemberContext.Provider>
   );
 }

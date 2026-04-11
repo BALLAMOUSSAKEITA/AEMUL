@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useI18n } from "@/lib/i18n";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
   CheckCircle2,
   AlertTriangle,
@@ -65,6 +66,8 @@ function EspaceMembreContent() {
   const [ideaText, setIdeaText] = useState("");
   const [ideaLoading, setIdeaLoading] = useState(false);
   const [ideaSent, setIdeaSent] = useState(false);
+
+  const [confirmAction, setConfirmAction] = useState<{ key: string; action: () => void } | null>(null);
 
   const [card, setCard] = useState<MemberCardData | null>(null);
   const [cardLoading, setCardLoading] = useState(false);
@@ -166,10 +169,18 @@ function EspaceMembreContent() {
     }
   }
 
-  async function toggleEventRegistration(eventId: string) {
+  function requestToggleEvent(eventId: string) {
+    const isRegistered = registeredEvents.has(eventId);
+    setConfirmAction({
+      key: isRegistered ? "confirm.event_unregister" : "confirm.event_register",
+      action: () => doToggleEvent(eventId, isRegistered),
+    });
+  }
+
+  async function doToggleEvent(eventId: string, wasRegistered: boolean) {
     setRegLoading(eventId);
     try {
-      if (registeredEvents.has(eventId)) {
+      if (wasRegistered) {
         await api.unregisterFromEvent(eventId);
         setRegisteredEvents((prev) => { const s = new Set(prev); s.delete(eventId); return s; });
       } else {
@@ -219,8 +230,8 @@ function EspaceMembreContent() {
   return (
     <>
       {showPasswordModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4">
-          <div className="bg-card rounded-t-3xl sm:rounded-2xl border shadow-2xl p-6 sm:p-8 w-full sm:max-w-sm space-y-5 safe-bottom">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto">
+          <div className="bg-card rounded-t-3xl sm:rounded-2xl border shadow-2xl p-6 sm:p-8 w-full sm:max-w-sm space-y-5 safe-bottom my-auto">
             <div className="text-center">
               <div className="w-12 h-12 rounded-full bg-[var(--gold)]/10 flex items-center justify-center mx-auto mb-3">
                 <Lock className="w-6 h-6 text-[var(--gold)]" />
@@ -598,7 +609,7 @@ function EspaceMembreContent() {
                           variant={registeredEvents.has(evt.id) ? "secondary" : "default"}
                           className="w-full gap-2 rounded-xl"
                           disabled={regLoading === evt.id}
-                          onClick={() => toggleEventRegistration(evt.id)}
+                          onClick={() => requestToggleEvent(evt.id)}
                         >
                           {regLoading === evt.id ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -622,6 +633,15 @@ function EspaceMembreContent() {
           <PrayerTimes />
         )}
       </div>
+
+      <ConfirmDialog
+        open={!!confirmAction}
+        onOpenChange={(open) => { if (!open) setConfirmAction(null); }}
+        title={confirmAction ? t(confirmAction.key) : ""}
+        confirmLabel={t("confirm.yes")}
+        cancelLabel={t("confirm.no")}
+        onConfirm={() => confirmAction?.action()}
+      />
     </>
   );
 }
