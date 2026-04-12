@@ -69,6 +69,7 @@ _KB_SEED = [
         "title": "Présentation de l'AEMUL",
         "category": "Présentation",
         "keywords": "aemul, association, musulmans, université, laval, création, 1976, histoire, islam, paix",
+        "is_active": True,
         "content": (
             "L'AEMUL (Association des Étudiants Musulmans de l'Université Laval) a été créée en 1976. "
             "Elle vise à contribuer au rayonnement de l'islam en tant que religion de paix pour toutes les créatures."
@@ -78,6 +79,7 @@ _KB_SEED = [
         "title": "Objectifs de l'AEMUL",
         "category": "Mission & valeurs",
         "keywords": "objectifs, mission, foi, accueil, soutien, solidarité, réflexion, activités, culturelles, sportives",
+        "is_active": True,
         "content": (
             "Les objectifs de l'AEMUL sont :\n"
             "• Offrir aux membres un cadre adéquat d'expression de leur foi.\n"
@@ -92,6 +94,7 @@ _KB_SEED = [
         "title": "Projets et activités de l'AEMUL",
         "category": "Activités",
         "keywords": "projets, activités, coran, arabe, iftar, ramadan, taraweeh, prière, événements, sociaux, sportifs, culturels, rassemblement",
+        "is_active": True,
         "content": (
             "Les principaux projets et activités de l'AEMUL sont :\n"
             "• Apprentissage du Coran et de la langue arabe.\n"
@@ -103,13 +106,14 @@ _KB_SEED = [
 
 
 async def _seed_knowledge():
-    """Seed la base de connaissances avec les informations de l'AEMUL si vide."""
+    """Insère les entrées de seed si elles n'existent pas encore (idempotent par titre)."""
     async with async_session() as session:
-        result = await session.execute(select(KnowledgeEntry).limit(1))
-        if result.scalar_one_or_none() is not None:
-            return
-        for entry in _KB_SEED:
-            session.add(KnowledgeEntry(**entry))
+        for entry_data in _KB_SEED:
+            result = await session.execute(
+                select(KnowledgeEntry).where(KnowledgeEntry.title == entry_data["title"])
+            )
+            if result.scalar_one_or_none() is None:
+                session.add(KnowledgeEntry(**entry_data))
         await session.commit()
 
 
