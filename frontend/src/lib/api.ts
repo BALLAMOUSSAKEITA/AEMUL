@@ -237,6 +237,25 @@ export const api = {
   listIdeas: () =>
     authedRequest<IdeaItem[]>("/api/ideas", "admin_token"),
 
+  // ── Access Codes (admin) ──
+  listAccessCodes: () =>
+    authedRequest<AccessCodeItem[]>("/api/access-codes", "admin_token"),
+
+  createAccessCode: (data: AccessCodePayload) =>
+    authedRequest<AccessCodeItem>("/api/access-codes", "admin_token", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  updateAccessCode: (id: string, data: Partial<AccessCodePayload>) =>
+    authedRequest<AccessCodeItem>(`/api/access-codes/${id}`, "admin_token", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+
+  deleteAccessCode: (id: string) =>
+    authedRequest<void>(`/api/access-codes/${id}`, "admin_token", { method: "DELETE" }),
+
   // ── Prayer times ──
   getPrayerTimes: () => request<PrayerTimesResponse>("/api/prayer-times"),
 };
@@ -280,6 +299,25 @@ export interface IdeaItem {
   id: string;
   content: string;
   created_at: string;
+}
+
+// ── Access Codes ─────────────────────────────────────────────────────────────
+
+export interface AccessCodeItem {
+  id: string;
+  platform_name: string;
+  identifier: string;
+  password: string;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AccessCodePayload {
+  platform_name: string;
+  identifier: string;
+  password: string;
+  notes?: string | null;
 }
 
 // ── Prayer Times ────────────────────────────────────────────────────────────
