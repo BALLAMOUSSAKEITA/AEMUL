@@ -4,7 +4,8 @@ import re
 import unicodedata
 import uuid
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types as genai_types
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -25,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 # ── Gemini setup ──────────────────────────────────────────────────────────────
 
-_GEMINI_MODEL: genai.GenerativeModel | None = None
+_GEMINI_CLIENT: genai.Client | None = None
 
 _SYSTEM_INSTRUCTION = (
     "Tu es l'assistant officiel de l'AEMUL (Association des Étudiants Musulmans de l'Université Laval). "
@@ -44,26 +45,20 @@ _SYSTEM_INSTRUCTION = (
     "5. Tu peux utiliser le Markdown (gras, listes) pour structurer tes réponses."
 )
 
+_GEMINI_MODEL = "gemini-2.5-flash"
 
-def _get_model() -> genai.GenerativeModel | None:
-    global _GEMINI_MODEL
-    if _GEMINI_MODEL is not None:
-        return _GEMINI_MODEL
+
+def _get_client() -> genai.Client | None:
+    global _GEMINI_CLIENT
+    if _GEMINI_CLIENT is not None:
+        return _GEMINI_CLIENT
     api_key = os.getenv("GEMINI_API_KEY", "")
     if not api_key:
         logger.warning("GEMINI_API_KEY non définie — fallback keyword matching")
         return None
-    genai.configure(api_key=api_key)
-    _GEMINI_MODEL = genai.GenerativeModel(
-        model_name="gemini-2.5-pro-preview-03-25",
-        generation_config={
-            "temperature": 0.3,
-            "max_output_tokens": 800,
-        },
-        system_instruction=_SYSTEM_INSTRUCTION,
-    )
-    logger.info("Modèle Gemini 2.5 Pro initialisé")
-    return _GEMINI_MODEL
+    _GEMINI_CLIENT = genai.Client(api_key=api_key)
+    logger.info("Client Gemini initialisé avec le modèle %s", _GEMINI_MODEL)
+    return _GEMINI_CLIENT
 
 
 # ── Retrieval helpers (TF-IDF léger) ─────────────────────────────────────────
@@ -131,7 +126,7 @@ def _retrieve(entries: list[KnowledgeEntry], question: str, top_k: int = 5) -> l
 # ── RAG + Gemini ──────────────────────────────────────────────────────────────
 
 async def _ask_with_rag(question: str, entries: list[KnowledgeEntry]) -> ChatAnswer:
-    model = _get_model()
+    client = _get_client()
 
     retrieved = _retrieve(entries, question, top_k=5)
 
@@ -148,7 +143,7 @@ async def _ask_with_rag(question: str, entries: list[KnowledgeEntry]) -> ChatAns
         f"{question}"
     )
 
-    if model is None:
+    if client is None:
         # Fallback sans LLM
         words = _query_words(question)
         scored = [(e, _score(e, words)) for e in entries]
@@ -167,7 +162,15 @@ async def _ask_with_rag(question: str, entries: list[KnowledgeEntry]) -> ChatAns
         return ChatAnswer(answer="\n\n---\n\n".join(parts), found=True)
 
     try:
-        response = await model.generate_content_async(prompt)
+        response = await client.aio.models.generate_content(
+            model=_GEMINI_MODEL,
+            contents=prompt,
+            config=genai_types.GenerateContentConfig(
+                system_instruction=_SYSTEM_INSTRUCTION,
+                temperature=0.3,
+                max_output_tokens=800,
+            ),
+        )
         answer = response.text.strip()
         found = not any(
             phrase in answer.lower()
