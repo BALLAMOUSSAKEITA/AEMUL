@@ -24,11 +24,8 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: "cover",
   themeColor: "#1b6b3a",
-  interactiveWidget: "resizes-content",
 };
 
 import { I18nProvider } from "@/lib/i18n";
@@ -69,15 +66,6 @@ export default function RootLayout({
                   navigator.serviceWorker.register('/sw.js');
                 });
               }
-              // Scroll focused input into view when keyboard opens
-              document.addEventListener('focusin', function(e) {
-                var el = e.target;
-                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
-                  setTimeout(function() {
-                    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                  }, 300);
-                }
-              });
             `,
           }}
         />
