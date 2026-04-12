@@ -6,7 +6,7 @@ from sqlalchemy import select, text
 
 from .auth import hash_password
 from .database import engine, Base, async_session
-from .models import Admin
+from .models import Admin, KnowledgeEntry
 from .routers import admin, events, ideas, members, prayer_times, access_codes, knowledge
 
 
@@ -64,12 +64,62 @@ async def _seed_admin():
             await session.commit()
 
 
+_KB_SEED = [
+    {
+        "title": "Présentation de l'AEMUL",
+        "category": "Présentation",
+        "keywords": "aemul, association, musulmans, université, laval, création, 1976, histoire, islam, paix",
+        "content": (
+            "L'AEMUL (Association des Étudiants Musulmans de l'Université Laval) a été créée en 1976. "
+            "Elle vise à contribuer au rayonnement de l'islam en tant que religion de paix pour toutes les créatures."
+        ),
+    },
+    {
+        "title": "Objectifs de l'AEMUL",
+        "category": "Mission & valeurs",
+        "keywords": "objectifs, mission, foi, accueil, soutien, solidarité, réflexion, activités, culturelles, sportives",
+        "content": (
+            "Les objectifs de l'AEMUL sont :\n"
+            "• Offrir aux membres un cadre adéquat d'expression de leur foi.\n"
+            "• Servir de cadre d'accueil et de soutien à tout nouvel arrivant(e), particulièrement aux étudiant(e)s.\n"
+            "• Servir de lieu de réflexion et d'échange, surtout ce qui a trait à la foi et à l'actualité islamique.\n"
+            "• Promouvoir la solidarité entre les membres.\n"
+            "• Promouvoir des relations de compréhension et de bonne entente avec le reste de la communauté universitaire.\n"
+            "• Organiser des activités culturelles et sportives pour les membres."
+        ),
+    },
+    {
+        "title": "Projets et activités de l'AEMUL",
+        "category": "Activités",
+        "keywords": "projets, activités, coran, arabe, iftar, ramadan, taraweeh, prière, événements, sociaux, sportifs, culturels, rassemblement",
+        "content": (
+            "Les principaux projets et activités de l'AEMUL sont :\n"
+            "• Apprentissage du Coran et de la langue arabe.\n"
+            "• Iftars du Ramadan et prières (Taraweeh).\n"
+            "• Rassemblement de la communauté étudiante musulmane autour d'événements sociaux, culturels et sportifs."
+        ),
+    },
+]
+
+
+async def _seed_knowledge():
+    """Seed la base de connaissances avec les informations de l'AEMUL si vide."""
+    async with async_session() as session:
+        result = await session.execute(select(KnowledgeEntry).limit(1))
+        if result.scalar_one_or_none() is not None:
+            return
+        for entry in _KB_SEED:
+            session.add(KnowledgeEntry(**entry))
+        await session.commit()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     await _migrate_schema()
     await _seed_admin()
+    await _seed_knowledge()
     yield
 
 
