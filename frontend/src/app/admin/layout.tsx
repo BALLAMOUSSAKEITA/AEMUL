@@ -15,8 +15,18 @@ import {
   X,
   ChevronRight,
   KeyRound,
+  BookOpen,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
+
+const NAV_ITEMS = [
+  { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/membres", label: "Membres", icon: Users },
+  { href: "/admin/evenements", label: "Événements", icon: CalendarDays },
+  { href: "/admin/idees", label: "Idées", icon: Lightbulb },
+  { href: "/admin/acces", label: "Codes d'accès", icon: KeyRound },
+  { href: "/admin/base-connaissances", label: "Base de connaissances", icon: BookOpen },
+];
 
 const NAV_ITEMS = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },

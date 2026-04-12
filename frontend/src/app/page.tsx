@@ -20,6 +20,7 @@ import { PrayerTimes } from "@/components/PrayerTimes";
 import { Logo, LogoText } from "@/components/Logo";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { Chatbot } from "@/components/Chatbot";
 import { useI18n } from "@/lib/i18n";
 import { api } from "@/lib/api";
 
@@ -269,6 +270,9 @@ export default function Home() {
           </div>
         </div>
       </footer>
+
+      {/* Chatbot flottant */}
+      <Chatbot />
     </main>
   );
 }
