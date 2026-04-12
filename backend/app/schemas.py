@@ -186,3 +186,31 @@ class IdeaOut(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+# ── Access Codes ─────────────────────────────────────────────────────────────
+
+class AccessCodeCreate(BaseModel):
+    platform_name: str
+    identifier: str
+    password: str
+    notes: str | None = None
+
+
+class AccessCodeUpdate(BaseModel):
+    platform_name: str | None = None
+    identifier: str | None = None
+    password: str | None = None
+    notes: str | None = None
+
+
+class AccessCodeOut(BaseModel):
+    id: uuid.UUID
+    platform_name: str
+    identifier: str
+    password: str
+    notes: str | None = None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}

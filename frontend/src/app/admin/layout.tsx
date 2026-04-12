@@ -14,6 +14,7 @@ import {
   Menu,
   X,
   ChevronRight,
+  KeyRound,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 
@@ -22,6 +23,7 @@ const NAV_ITEMS = [
   { href: "/admin/membres", label: "Membres", icon: Users },
   { href: "/admin/evenements", label: "Événements", icon: CalendarDays },
   { href: "/admin/idees", label: "Idées", icon: Lightbulb },
+  { href: "/admin/acces", label: "Codes d'accès", icon: KeyRound },
 ];
 
 export default function AdminLayout({

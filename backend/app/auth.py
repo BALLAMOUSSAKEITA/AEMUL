@@ -1,9 +1,12 @@
+import base64
+import hashlib
 import os
 import secrets
 import string
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
+from cryptography.fernet import Fernet
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
@@ -31,6 +34,23 @@ def verify_password(plain: str, hashed: str) -> bool:
 def generate_password(length: int = 8) -> str:
     alphabet = string.ascii_letters + string.digits
     return "".join(secrets.choice(alphabet) for _ in range(length))
+
+
+def _get_fernet() -> Fernet:
+    """Derive a Fernet key from JWT_SECRET (SHA-256 → 32 bytes → URL-safe base64)."""
+    raw_key = hashlib.sha256(JWT_SECRET.encode()).digest()
+    encoded_key = base64.urlsafe_b64encode(raw_key)
+    return Fernet(encoded_key)
+
+
+def encrypt_value(value: str) -> str:
+    """Symmetrically encrypt a plaintext string."""
+    return _get_fernet().encrypt(value.encode()).decode()
+
+
+def decrypt_value(token: str) -> str:
+    """Decrypt a value previously encrypted with encrypt_value."""
+    return _get_fernet().decrypt(token.encode()).decode()
 
 
 def create_access_token(subject_id: str, role: str = "admin") -> str:
