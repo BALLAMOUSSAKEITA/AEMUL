@@ -135,17 +135,10 @@
   }
 }
 
-/* Use dynamic viewport height on mobile (shrinks when keyboard opens) */
+/* Use dynamic viewport height on mobile */
 .min-h-screen-safe {
   min-height: 100vh;
   min-height: 100dvh;
-}
-
-/* When keyboard is open, add bottom padding so inputs aren't hidden */
-@supports (height: 100dvh) {
-  .keyboard-aware {
-    padding-bottom: env(keyboard-inset-height, 0px);
-  }
 }
 
 @keyframes float {
