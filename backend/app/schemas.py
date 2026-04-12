@@ -214,3 +214,45 @@ class AccessCodeOut(BaseModel):
     updated_at: datetime
 
     model_config = {"from_attributes": True}
+
+
+# ── Knowledge Base ────────────────────────────────────────────────────────────
+
+class KnowledgeEntryCreate(BaseModel):
+    title: str
+    content: str
+    category: str = "Général"
+    keywords: str | None = None
+    is_active: bool = True
+
+
+class KnowledgeEntryUpdate(BaseModel):
+    title: str | None = None
+    content: str | None = None
+    category: str | None = None
+    keywords: str | None = None
+    is_active: bool | None = None
+
+
+class KnowledgeEntryOut(BaseModel):
+    id: uuid.UUID
+    title: str
+    content: str
+    category: str
+    keywords: str | None = None
+    is_active: bool
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+# ── Chat ─────────────────────────────────────────────────────────────────────
+
+class ChatQuestion(BaseModel):
+    question: str
+
+
+class ChatAnswer(BaseModel):
+    answer: str
+    found: bool = True

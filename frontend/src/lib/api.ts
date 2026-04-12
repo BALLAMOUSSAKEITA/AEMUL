@@ -256,6 +256,32 @@ export const api = {
   deleteAccessCode: (id: string) =>
     authedRequest<void>(`/api/access-codes/${id}`, "admin_token", { method: "DELETE" }),
 
+  // ── Knowledge Base (admin) ──
+  listKb: () =>
+    authedRequest<KnowledgeEntryItem[]>("/api/kb", "admin_token"),
+
+  createKbEntry: (data: KnowledgeEntryPayload) =>
+    authedRequest<KnowledgeEntryItem>("/api/kb", "admin_token", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  updateKbEntry: (id: string, data: Partial<KnowledgeEntryPayload>) =>
+    authedRequest<KnowledgeEntryItem>(`/api/kb/${id}`, "admin_token", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+
+  deleteKbEntry: (id: string) =>
+    authedRequest<void>(`/api/kb/${id}`, "admin_token", { method: "DELETE" }),
+
+  // ── Chat (public) ──
+  askChatbot: (question: string) =>
+    request<ChatAnswer>("/api/chat", {
+      method: "POST",
+      body: JSON.stringify({ question }),
+    }),
+
   // ── Prayer times ──
   getPrayerTimes: () => request<PrayerTimesResponse>("/api/prayer-times"),
 };
@@ -318,6 +344,32 @@ export interface AccessCodePayload {
   identifier: string;
   password: string;
   notes?: string | null;
+}
+
+// ── Knowledge Base ────────────────────────────────────────────────────────────
+
+export interface KnowledgeEntryItem {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  keywords: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface KnowledgeEntryPayload {
+  title: string;
+  content: string;
+  category: string;
+  keywords?: string | null;
+  is_active?: boolean;
+}
+
+export interface ChatAnswer {
+  answer: string;
+  found: boolean;
 }
 
 // ── Prayer Times ────────────────────────────────────────────────────────────
