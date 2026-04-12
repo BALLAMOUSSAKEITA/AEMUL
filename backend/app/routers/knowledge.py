@@ -1,3 +1,4 @@
+import logging
 import os
 import re
 import unicodedata
@@ -20,6 +21,7 @@ from ..schemas import (
 )
 
 router = APIRouter(tags=["knowledge"])
+logger = logging.getLogger(__name__)
 
 # ── Gemini setup ──────────────────────────────────────────────────────────────
 
@@ -49,16 +51,18 @@ def _get_model() -> genai.GenerativeModel | None:
         return _GEMINI_MODEL
     api_key = os.getenv("GEMINI_API_KEY", "")
     if not api_key:
+        logger.warning("GEMINI_API_KEY non définie — fallback keyword matching")
         return None
     genai.configure(api_key=api_key)
     _GEMINI_MODEL = genai.GenerativeModel(
-        model_name="gemini-1.5-flash",
-        generation_config=genai.types.GenerationConfig(
-            temperature=0.3,
-            max_output_tokens=800,
-        ),
+        model_name="gemini-2.5-pro-preview-03-25",
+        generation_config={
+            "temperature": 0.3,
+            "max_output_tokens": 800,
+        },
         system_instruction=_SYSTEM_INSTRUCTION,
     )
+    logger.info("Modèle Gemini 2.5 Pro initialisé")
     return _GEMINI_MODEL
 
 
@@ -176,6 +180,7 @@ async def _ask_with_rag(question: str, entries: list[KnowledgeEntry]) -> ChatAns
         )
         return ChatAnswer(answer=answer, found=found)
     except Exception as e:
+        logger.error("Erreur Gemini : %s", e, exc_info=True)
         return ChatAnswer(
             answer=(
                 "Une erreur s'est produite lors de la génération de la réponse. "

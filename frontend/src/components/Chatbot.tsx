@@ -277,7 +277,7 @@ export function Chatbot() {
             <p className="text-white font-semibold text-sm leading-tight">Assistant AEMUL</p>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400/60" />
-              <p className="text-white/60 text-xs">Disponible · Propulsé par Gemini AI</p>
+              <p className="text-white/60 text-xs">Disponible · Assistant virtuel</p>
             </div>
           </div>
           <div className="flex items-center gap-1">
