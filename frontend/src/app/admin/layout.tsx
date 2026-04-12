@@ -28,14 +28,6 @@ const NAV_ITEMS = [
   { href: "/admin/base-connaissances", label: "Base de connaissances", icon: BookOpen },
 ];
 
-const NAV_ITEMS = [
-  { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/membres", label: "Membres", icon: Users },
-  { href: "/admin/evenements", label: "Événements", icon: CalendarDays },
-  { href: "/admin/idees", label: "Idées", icon: Lightbulb },
-  { href: "/admin/acces", label: "Codes d'accès", icon: KeyRound },
-];
-
 export default function AdminLayout({
   children,
 }: {
