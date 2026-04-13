@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,9 @@ import {
   Lightbulb,
   Send,
   Loader2,
+  CalendarDays,
+  MapPin,
+  Clock,
 } from "lucide-react";
 import { PrayerTimes } from "@/components/PrayerTimes";
 import { Logo, LogoText } from "@/components/Logo";
@@ -22,13 +25,18 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { Chatbot } from "@/components/Chatbot";
 import { useI18n } from "@/lib/i18n";
-import { api } from "@/lib/api";
+import { api, Event } from "@/lib/api";
 
 export default function Home() {
   const { t } = useI18n();
   const [ideaText, setIdeaText] = useState("");
   const [ideaLoading, setIdeaLoading] = useState(false);
   const [ideaSent, setIdeaSent] = useState(false);
+  const [upcomingEvents, setUpcomingEvents] = useState<Event[]>([]);
+
+  useEffect(() => {
+    api.listEvents(true).then((events) => setUpcomingEvents(events.slice(0, 3))).catch(() => {});
+  }, []);
 
   async function submitIdea() {
     if (!ideaText.trim()) return;
@@ -176,6 +184,71 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Événements à venir */}
+      {upcomingEvents.length > 0 && (
+        <section className="py-16 px-4 bg-gradient-to-b from-secondary/30 to-secondary/10">
+          <div className="max-w-5xl mx-auto">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-10">
+              <div>
+                <div className="inline-flex items-center gap-2 bg-[#14532d]/10 text-[#14532d] dark:text-emerald-400 rounded-full px-4 py-1.5 text-sm font-medium mb-3">
+                  <CalendarDays className="w-3.5 h-3.5" />
+                  Prochainement
+                </div>
+                <h2 className="text-3xl md:text-4xl font-bold font-[var(--font-heading)]">
+                  Événements à venir
+                </h2>
+              </div>
+              <Link href="/evenements">
+                <Button variant="outline" className="gap-2 rounded-xl shrink-0">
+                  Tous les événements
+                  <ArrowRight className="w-4 h-4" />
+                </Button>
+              </Link>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-5">
+              {upcomingEvents.map((event) => {
+                const d = new Date(event.date);
+                return (
+                  <div
+                    key={event.id}
+                    className="bg-card border rounded-2xl overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all duration-300"
+                  >
+                    <div className="h-1.5 bg-gradient-to-r from-[#14532d] to-[#22c55e]" />
+                    <div className="p-5 flex gap-4">
+                      <div className="shrink-0 w-12 h-12 rounded-xl bg-[#14532d] text-white flex flex-col items-center justify-center font-bold shadow-sm">
+                        <span className="text-lg leading-none">{d.getDate()}</span>
+                        <span className="text-[9px] uppercase tracking-wider opacity-75">
+                          {d.toLocaleDateString("fr-CA", { month: "short" })}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm line-clamp-2 leading-snug">{event.title}</p>
+                        {event.description && (
+                          <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{event.description}</p>
+                        )}
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                            <Clock className="w-3 h-3" />
+                            {d.toLocaleTimeString("fr-CA", { hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                          {event.location && (
+                            <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
+                              <MapPin className="w-3 h-3" />
+                              <span className="truncate max-w-[120px]">{event.location}</span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* Idea Box */}
       <section className="py-12 px-4 bg-gradient-to-b from-secondary/30 to-background">
         <div className="max-w-xl mx-auto">
@@ -243,6 +316,12 @@ export default function Home() {
             &copy; {new Date().getFullYear()} AEMUL - {t("common.all_rights")}
           </p>
           <div className="flex items-center gap-4">
+            <Link
+              href="/evenements"
+              className="text-xs text-muted-foreground/60 hover:text-primary transition-colors"
+            >
+              Événements
+            </Link>
             <Link
               href="/a-propos"
               className="text-xs text-muted-foreground/60 hover:text-primary transition-colors"
