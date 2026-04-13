@@ -80,6 +80,19 @@ async def get_current_admin(
     return admin
 
 
+async def get_current_superadmin(
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+    db: AsyncSession = Depends(get_db),
+) -> Admin:
+    admin = await get_current_admin(credentials, db)
+    if not admin.is_superadmin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Accès réservé au superadmin.",
+        )
+    return admin
+
+
 async def get_current_member(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: AsyncSession = Depends(get_db),

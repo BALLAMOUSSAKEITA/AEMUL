@@ -18,6 +18,8 @@ async def _migrate_schema():
         ("members", "is_approved", "BOOLEAN NOT NULL DEFAULT false"),
         ("members", "study_level", "VARCHAR(50) NOT NULL DEFAULT 'baccalaureat'"),
         ("members", "gender", "VARCHAR(10) NOT NULL DEFAULT 'frere'"),
+        ("admins", "is_superadmin", "BOOLEAN NOT NULL DEFAULT false"),
+        ("admins", "permissions", "TEXT DEFAULT NULL"),
     ]
     nullable_migrations = [
         ("members", "student_id"),
@@ -52,7 +54,7 @@ async def _migrate_schema():
 
 
 async def _seed_admin():
-    """Create default admin if none exists."""
+    """Create default superadmin if none exists."""
     async with async_session() as session:
         result = await session.execute(select(Admin).limit(1))
         if result.scalar_one_or_none() is None:
@@ -60,8 +62,18 @@ async def _seed_admin():
                 email="admin@aemul.com",
                 hashed_password=hash_password("admin"),
                 full_name="Administrateur AEMUL",
+                is_superadmin=True,
             ))
             await session.commit()
+        else:
+            # S'assurer que le premier admin est bien superadmin (migration)
+            result2 = await session.execute(
+                select(Admin).where(Admin.email == "admin@aemul.com")
+            )
+            existing = result2.scalar_one_or_none()
+            if existing and not existing.is_superadmin:
+                existing.is_superadmin = True
+                await session.commit()
 
 
 _KB_SEED = [

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { api } from "@/lib/api";
+import { api, AdminInfo } from "@/lib/api";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,27 +16,25 @@ import {
   ChevronRight,
   KeyRound,
   BookOpen,
+  ShieldCheck,
 } from "lucide-react";
 import { Logo } from "@/components/Logo";
 
-const NAV_ITEMS = [
-  { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/membres", label: "Membres", icon: Users },
-  { href: "/admin/evenements", label: "Événements", icon: CalendarDays },
-  { href: "/admin/idees", label: "Idées", icon: Lightbulb },
-  { href: "/admin/acces", label: "Codes d'accès", icon: KeyRound },
-  { href: "/admin/base-connaissances", label: "Base de connaissances", icon: BookOpen },
+// Tous les onglets disponibles avec leur clé de permission
+const ALL_NAV_ITEMS = [
+  { href: "/admin/dashboard",          label: "Dashboard",            icon: LayoutDashboard,  key: "dashboard" },
+  { href: "/admin/membres",            label: "Membres",              icon: Users,            key: "membres" },
+  { href: "/admin/evenements",         label: "Événements",           icon: CalendarDays,     key: "evenements" },
+  { href: "/admin/idees",              label: "Idées",                icon: Lightbulb,        key: "idees" },
+  { href: "/admin/acces",              label: "Codes d'accès",        icon: KeyRound,         key: "acces" },
+  { href: "/admin/base-connaissances", label: "Base de connaissances",icon: BookOpen,         key: "base-connaissances" },
+  { href: "/admin/gestion-admins",     label: "Gestion des admins",   icon: ShieldCheck,      key: "gestion-admins", superadminOnly: true },
 ];
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const [adminName, setAdminName] = useState("");
-  const [adminEmail, setAdminEmail] = useState("");
+  const [me, setMe] = useState<AdminInfo | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [checked, setChecked] = useState(false);
 
@@ -54,9 +52,8 @@ export default function AdminLayout({
 
     api
       .getMe()
-      .then((me) => {
-        setAdminName(me.full_name);
-        setAdminEmail(me.email);
+      .then((data) => {
+        setMe(data);
         setChecked(true);
       })
       .catch(() => {
@@ -70,11 +67,16 @@ export default function AdminLayout({
     router.push("/admin/login");
   }
 
-  if (!checked) return null;
+  // Filtrer les onglets selon le rôle et les permissions
+  const navItems = ALL_NAV_ITEMS.filter((item) => {
+    if (item.superadminOnly) return me?.is_superadmin === true;
+    if (me?.is_superadmin) return true;
+    if (me?.permissions === null) return true;
+    return me?.permissions?.includes(item.key) ?? false;
+  });
 
-  if (pathname === "/admin/login") {
-    return <>{children}</>;
-  }
+  if (!checked) return null;
+  if (pathname === "/admin/login") return <>{children}</>;
 
   return (
     <div className="min-h-screen flex bg-muted/30">
@@ -93,12 +95,9 @@ export default function AdminLayout({
         }`}
       >
         <div className="flex flex-col h-full">
-          {/* Sidebar header */}
+          {/* Header */}
           <div className="flex items-center justify-between p-5">
-            <Link
-              href="/admin/dashboard"
-              className="flex items-center gap-3"
-            >
+            <Link href="/admin/dashboard" className="flex items-center gap-3">
               <Logo size={36} className="rounded-xl" />
               <div>
                 <span className="font-bold text-white text-sm">AEMUL</span>
@@ -114,8 +113,8 @@ export default function AdminLayout({
           </div>
 
           {/* Nav */}
-          <nav className="flex-1 px-3 py-4 space-y-1">
-            {NAV_ITEMS.map((item) => {
+          <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+            {navItems.map((item) => {
               const active = pathname === item.href;
               return (
                 <Link
@@ -128,33 +127,34 @@ export default function AdminLayout({
                       : "text-white/60 hover:bg-white/8 hover:text-white"
                   }`}
                 >
-                  <item.icon className="w-[18px] h-[18px]" />
-                  <span className="flex-1">{item.label}</span>
-                  {active && (
-                    <ChevronRight className="w-3.5 h-3.5 text-[#c9952b]" />
-                  )}
+                  <item.icon className="w-[18px] h-[18px] shrink-0" />
+                  <span className="flex-1 truncate">{item.label}</span>
+                  {active && <ChevronRight className="w-3.5 h-3.5 text-[#c9952b]" />}
                 </Link>
               );
             })}
           </nav>
 
-          {/* Sidebar footer */}
+          {/* Footer */}
           <div className="p-3 border-t border-white/10">
             <div className="flex items-center gap-3 px-3 py-2">
               <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-xs font-bold text-white shrink-0">
-                {adminName
+                {(me?.full_name ?? "")
                   .split(" ")
                   .map((n) => n[0])
                   .join("")
                   .slice(0, 2)}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-white truncate">
-                  {adminName}
-                </p>
-                <p className="text-[10px] text-white/40 truncate">
-                  {adminEmail}
-                </p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-xs font-medium text-white truncate">{me?.full_name}</p>
+                  {me?.is_superadmin && (
+                    <span className="text-[9px] bg-[#c9952b]/30 text-[#c9952b] px-1.5 py-0.5 rounded-full font-semibold shrink-0">
+                      SUPER
+                    </span>
+                  )}
+                </div>
+                <p className="text-[10px] text-white/40 truncate">{me?.email}</p>
               </div>
               <Button
                 variant="ghost"
@@ -169,9 +169,8 @@ export default function AdminLayout({
         </div>
       </aside>
 
-      {/* Main content */}
+      {/* Main */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile header */}
         <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-md border-b px-4 py-3 lg:hidden flex items-center gap-3">
           <button onClick={() => setSidebarOpen(true)}>
             <Menu className="w-5 h-5" />
@@ -181,7 +180,6 @@ export default function AdminLayout({
             <span className="font-semibold text-sm">AEMUL Admin</span>
           </div>
         </header>
-
         <main className="flex-1 p-4 lg:p-8">{children}</main>
       </div>
     </div>

@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx shadcn@latest add alert-dialog -y)",
+      "Bash(npx shadcn@latest add alert-dialog --overwrite)",
+      "Bash(curl -k -s https://aemul-back-production.up.railway.app/)",
+      "Bash(cat frontend/vercel.json)",
+      "Bash(cat vercel.json)",
+      "Bash(cat railway.json)",
+      "Bash(cat frontend/next.config.ts)"
+    ]
+  }
+}

@@ -193,7 +193,26 @@ export const api = {
       body: JSON.stringify({ email, password, full_name }),
     }),
 
-  getMe: () => authedRequest<{ id: string; email: string; full_name: string }>("/api/auth/me", "admin_token"),
+  getMe: () => authedRequest<AdminInfo>("/api/auth/me", "admin_token"),
+
+  // ── Gestion admins (superadmin) ──
+  listAdmins: () =>
+    authedRequest<AdminInfo[]>("/api/auth/admins", "admin_token"),
+
+  createAdmin: (data: AdminManagePayload) =>
+    authedRequest<AdminInfo>("/api/auth/admins", "admin_token", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  updateAdmin: (id: string, data: AdminManageUpdate) =>
+    authedRequest<AdminInfo>(`/api/auth/admins/${id}`, "admin_token", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }),
+
+  deleteAdmin: (id: string) =>
+    authedRequest<void>(`/api/auth/admins/${id}`, "admin_token", { method: "DELETE" }),
 
   // ── Event registration (member) ──
   registerForEvent: (eventId: string) =>
@@ -373,6 +392,28 @@ export interface ChatAnswer {
 }
 
 // ── Prayer Times ────────────────────────────────────────────────────────────
+
+export interface AdminInfo {
+  id: string;
+  email: string;
+  full_name: string;
+  is_superadmin: boolean;
+  permissions: string[] | null;
+  created_at: string;
+}
+
+export interface AdminManagePayload {
+  email: string;
+  password: string;
+  full_name: string;
+  permissions: string[];
+}
+
+export interface AdminManageUpdate {
+  full_name?: string;
+  password?: string;
+  permissions?: string[];
+}
 
 export interface PrayerTimeEntry {
   hijri: string;

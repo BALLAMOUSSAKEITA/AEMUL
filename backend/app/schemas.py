@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, model_validator
 
 
 # ── Members ──────────────────────────────────────────────────────────────────
@@ -138,9 +138,47 @@ class AdminOut(BaseModel):
     id: uuid.UUID
     email: str
     full_name: str
+    is_superadmin: bool = False
+    permissions: list[str] | None = None
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+    @model_validator(mode="before")
+    @classmethod
+    def _parse_permissions(cls, v):
+        import json as _json
+        if not isinstance(v, dict):
+            d = {
+                "id": v.id,
+                "email": v.email,
+                "full_name": v.full_name,
+                "is_superadmin": getattr(v, "is_superadmin", False),
+                "created_at": v.created_at,
+            }
+            raw = getattr(v, "permissions", None)
+            d["permissions"] = _json.loads(raw) if isinstance(raw, str) else raw
+            return d
+        raw = v.get("permissions")
+        if isinstance(raw, str):
+            try:
+                v["permissions"] = _json.loads(raw)
+            except Exception:
+                v["permissions"] = []
+        return v
+
+
+class AdminManageCreate(BaseModel):
+    email: EmailStr
+    password: str
+    full_name: str
+    permissions: list[str]
+
+
+class AdminManageUpdate(BaseModel):
+    full_name: str | None = None
+    password: str | None = None
+    permissions: list[str] | None = None
 
 
 class Token(BaseModel):
