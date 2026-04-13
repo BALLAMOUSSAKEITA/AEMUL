@@ -121,19 +121,23 @@ export default function AdminEventsPage() {
     <div className="space-y-8 max-w-4xl">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold font-[var(--font-heading)]">{t("admin.events.title")}</h1>
-          <p className="text-muted-foreground text-sm mt-0.5">
-            {t("admin.events.subtitle")}
-          </p>
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <CalendarDays className="w-6 h-6 text-primary" />
+            {t("admin.events.title")}
+          </h1>
+          <p className="text-muted-foreground text-sm mt-1">{t("admin.events.subtitle")}</p>
         </div>
-        <Button onClick={() => { resetForm(); setShowForm(true); }} className="gap-2">
+        <Button
+          onClick={() => { resetForm(); setShowForm(true); }}
+          className="gap-2 bg-[#14532d] hover:bg-[#14532d]/90 shadow-sm"
+        >
           <Plus className="w-4 h-4" />
           {t("admin.events.new")}
         </Button>
       </div>
 
       {showForm && (
-        <div className="bg-card rounded-2xl border p-6">
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-6">
           <div className="flex items-center justify-between mb-5">
             <h2 className="font-bold">{editingId ? t("admin.events.edit") : t("admin.events.create")} {t("admin.events.event_suffix")}</h2>
             <button onClick={resetForm}>
@@ -197,14 +201,12 @@ export default function AdminEventsPage() {
           <Loader2 className="w-6 h-6 animate-spin text-primary" />
         </div>
       ) : events.length === 0 ? (
-        <div className="bg-card rounded-2xl border p-10 text-center">
-          <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center mx-auto mb-3">
-            <CalendarDays className="w-7 h-7 text-muted-foreground" />
+        <div className="bg-white rounded-2xl border border-border/60 shadow-sm p-14 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <CalendarDays className="w-8 h-8 text-primary" />
           </div>
-          <p className="font-medium text-sm text-muted-foreground">{t("admin.events.no_events")}</p>
-          <p className="text-xs text-muted-foreground/60 mt-1">
-            {t("admin.events.no_events_desc")}
-          </p>
+          <p className="font-semibold text-sm">{t("admin.events.no_events")}</p>
+          <p className="text-xs text-muted-foreground mt-1">{t("admin.events.no_events_desc")}</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -214,16 +216,16 @@ export default function AdminEventsPage() {
             return (
               <div
                 key={evt.id}
-                className={`bg-card rounded-2xl border p-5 flex items-start justify-between gap-4 ${
-                  isPast ? "opacity-60" : ""
+                className={`bg-white rounded-2xl border border-border/60 shadow-sm p-5 flex items-start justify-between gap-4 hover:shadow-md transition-shadow ${
+                  isPast ? "opacity-55" : ""
                 }`}
               >
                 <div className="flex gap-4 min-w-0">
-                  <div className="w-14 h-14 rounded-xl bg-primary/10 flex flex-col items-center justify-center shrink-0">
-                    <span className="text-xs font-bold text-primary uppercase">
+                  <div className={`w-14 h-14 rounded-xl flex flex-col items-center justify-center shrink-0 ${isPast ? "bg-muted" : "bg-[#14532d]"}`}>
+                    <span className={`text-[10px] font-bold uppercase ${isPast ? "text-muted-foreground" : "text-white/70"}`}>
                       {eventDate.toLocaleDateString("fr-CA", { month: "short" })}
                     </span>
-                    <span className="text-lg font-bold text-primary leading-none">
+                    <span className={`text-xl font-bold leading-none ${isPast ? "text-muted-foreground" : "text-white"}`}>
                       {eventDate.getDate()}
                     </span>
                   </div>
